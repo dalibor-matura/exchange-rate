@@ -1,0 +1,17 @@
+language: rust
+rust:
+- stable
+os:
+- linux
+- osx
+cache: cargo
+before_cache:
+- cargo prune
+env:
+  global:
+  - PATH=$PATH:$HOME/.cargo/bin
+  - RUST_BACKTRACE=1
+before_script:
+- |
+  (which cargo-install-update && cargo install-update cargo-update) || cargo install cargo-update &&
+  (which cargo-prune && cargo install-update cargo-prune) || cargo install cargo-prune

@@ -1,0 +1,10 @@
+[package]
+name = "exchange-rate-path"
+version = "0.1.0"
+authors = ["Dalibor Matura <dalibor.matura@gmail.com>"]
+edition = "2018"
+description = "Exchange Rate Path calculation for a given set of Exchanges, Currencies, Exchange Rates and Exchange Rate Requests."
+homepage = "https://github.com/dalibor-matura/exchange-rate-path"
+readme = "README.md"
+repository = "https://github.com/dalibor-matura/exchange-rate-path"
+keywords = ["exchange", "rate", "path", "currency"]
