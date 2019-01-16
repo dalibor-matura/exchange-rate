@@ -1,9 +1,4 @@
-//! Graph Edge representation.
-//!
-//! # Examples
-//!
-//! ```
-//! ```
+//! Graph Edge related constructs.
 
 use self::Direction::{Incoming, Outgoing};
 use crate::graph::node::NodeTrait;

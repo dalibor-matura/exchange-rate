@@ -1,3 +1,5 @@
+//! Graph traversing structs.
+
 use crate::graph::edge::Direction::Outgoing;
 use crate::graph::edge::{CompactDirection, Direction, EdgeType};
 use crate::graph::node::NodeTrait;

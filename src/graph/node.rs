@@ -1,9 +1,4 @@
-//! Graph Node representation.
-//!
-//! # Examples
-//!
-//! ```
-//! ```
+//! Graph Node related constructs.
 
 use crate::graph::edge::CompactDirection;
 use indexmap::map::Keys;
