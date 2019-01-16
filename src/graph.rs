@@ -426,6 +426,141 @@ mod tests {
     }
 
     #[test]
+    fn is_directed_true() {
+        let graph: Graph<&str, f32, Directed> = Graph::new();
+
+        assert_eq!(graph.is_directed(), true)
+    }
+
+    #[test]
+    fn is_directed_false() {
+        let graph: Graph<&str, f32, Undirected> = Graph::new();
+
+        assert_eq!(graph.is_directed(), false)
+    }
+
+    #[test]
+    fn from_edges() {
+        // Create a new directed Graph.
+        // Use a type hint to have `()` be the edge weight type.
+        let graph = Graph::<_, _>::from_edges(&[
+            (0, 1, 0.12),
+            (0, 2, 0.99),
+            (0, 3, 0.1),
+            (1, 2, 0.9),
+            (1, 3, 0.44),
+            (2, 3, 0.8),
+        ]);
+
+        // Test nodes and edges count.
+        assert_eq!(graph.node_count(), 4);
+        assert_eq!(graph.edge_count(), 6);
+
+        // Test edges weights.
+        assert_eq!(graph.edge_weight(0, 1), Some(&0.12));
+        assert_eq!(graph.edge_weight(2, 3), Some(&0.8));
+    }
+
+    #[test]
+    fn node_count() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Test nodes count immediately after graph creation.
+        assert_eq!(graph.node_count(), 0);
+
+        graph.add_node("a");
+        graph.add_node("b");
+
+        // Test nodes count .
+        assert_eq!(graph.node_count(), 2);
+    }
+
+    #[test]
+    fn edge_count() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Test edges count immediately after graph creation.
+        assert_eq!(graph.edge_count(), 0);
+
+        graph.add_edge("a", "b", 2.3);
+        graph.add_edge("b", "c", 4.1);
+
+        // Test nodes count .
+        assert_eq!(graph.edge_count(), 2);
+    }
+
+    #[test]
+    fn clear() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Add one edge.
+        graph.add_edge("a", "b", 2.3);
+
+        // Test nodes and edges count.
+        assert_eq!(graph.node_count(), 2);
+        assert_eq!(graph.edge_count(), 1);
+
+        graph.clear();
+
+        // Test nodes and edges count.
+        assert_eq!(graph.node_count(), 0);
+        assert_eq!(graph.edge_count(), 0);
+    }
+
+    #[test]
+    fn add_node() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Add one node.
+        graph.add_node("a");
+
+        // Test nodes count .
+        assert_eq!(graph.node_count(), 1);
+    }
+
+    #[test]
+    fn add_edge() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Add one edge.
+        graph.add_edge("a", "b", 2.3);
+
+        // Test nodes and edges count.
+        assert_eq!(graph.node_count(), 2);
+        assert_eq!(graph.edge_count(), 1);
+    }
+
+    #[test]
+    fn edge_weight() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Add one edge.
+        let edge_weight = 2.4;
+        graph.add_edge("a", "b", edge_weight);
+
+        // Test edge weight.
+        assert_eq!(graph.edge_weight("a", "b"), Some(&edge_weight));
+    }
+
+    #[test]
+    fn nodes() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Prepare a list of node indexes to test with.
+        let list = ["a", "b", "c", "d"];
+
+        // Add items from the list as nodes.
+        for index in list.iter() {
+            graph.add_node(*index);
+        }
+
+        // Test iteration over nodes.
+        for (i, node) in graph.nodes().enumerate() {
+            assert_eq!(list[i], node);
+        }
+    }
+
+    #[test]
     fn check_nodes_and_edges() {
         let mut graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
         graph.add_edge("a", "b", 2.0);
