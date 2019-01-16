@@ -14,140 +14,22 @@
 //! - The security implication of using a third-party crate with no stable release yet are bad,
 //!   risk of malicious actions by outside influence.
 
-use crate::graph::edge::{EdgeIndex, EdgeType, IntoWeightedEdge};
-use crate::graph::node::{NodeIndex, NodeTrait};
-use crate::graph::Direction::{Incoming, Outgoing};
-use indexmap::map::{Iter as IndexMapIter, Keys};
+use crate::graph::edge::{
+    AllEdges, CompactDirection, Direction, EdgeType, Edges, IntoWeightedEdge,
+};
+use crate::graph::node::{NodeTrait, Nodes};
+use crate::graph::traverse::{Neighbors, NeighborsDirected};
 use indexmap::IndexMap;
 use std::fmt;
 use std::hash::Hash;
 use std::iter::FromIterator;
-use std::iter::{Cloned, DoubleEndedIterator};
 use std::marker::PhantomData;
-use std::slice::Iter;
 
 #[macro_use]
 mod macros;
 pub mod edge;
 pub mod node;
-
-/// The default integer type for graph indices.
-/// `u32` is the default to reduce the size of the graph's data and improve
-/// performance in the common case.
-///
-/// Used for node and edge indices in `Graph` and `StableGraph`, used
-/// for node indices in `Csr`.
-pub type DefaultIx = u32;
-
-/// Trait for the unsigned integer type used for node and edge indices.
-///
-/// Marked `unsafe` because: the trait must faithfully preseve
-/// and convert index values.
-pub unsafe trait IndexType: Copy + Default + Hash + Ord + fmt::Debug + 'static {
-    fn new(x: usize) -> Self;
-    fn index(&self) -> usize;
-    fn max() -> Self;
-}
-
-unsafe impl IndexType for usize {
-    #[inline(always)]
-    fn new(x: usize) -> Self {
-        x
-    }
-    #[inline(always)]
-    fn index(&self) -> Self {
-        *self
-    }
-    #[inline(always)]
-    fn max() -> Self {
-        ::std::usize::MAX
-    }
-}
-
-unsafe impl IndexType for u32 {
-    #[inline(always)]
-    fn new(x: usize) -> Self {
-        x as u32
-    }
-    #[inline(always)]
-    fn index(&self) -> usize {
-        *self as usize
-    }
-    #[inline(always)]
-    fn max() -> Self {
-        ::std::u32::MAX
-    }
-}
-
-unsafe impl IndexType for u16 {
-    #[inline(always)]
-    fn new(x: usize) -> Self {
-        x as u16
-    }
-    #[inline(always)]
-    fn index(&self) -> usize {
-        *self as usize
-    }
-    #[inline(always)]
-    fn max() -> Self {
-        ::std::u16::MAX
-    }
-}
-
-unsafe impl IndexType for u8 {
-    #[inline(always)]
-    fn new(x: usize) -> Self {
-        x as u8
-    }
-    #[inline(always)]
-    fn index(&self) -> usize {
-        *self as usize
-    }
-    #[inline(always)]
-    fn max() -> Self {
-        ::std::u8::MAX
-    }
-}
-
-/// Short version of `NodeIndex::new`
-pub fn node_index<Ix: IndexType>(index: usize) -> NodeIndex<Ix> {
-    NodeIndex::new(index)
-}
-
-/// Short version of `EdgeIndex::new`
-pub fn edge_index<Ix: IndexType>(index: usize) -> EdgeIndex<Ix> {
-    EdgeIndex::new(index)
-}
-
-// Index into the NodeIndex and EdgeIndex arrays
-/// Edge direction.
-#[derive(Copy, Debug, PartialEq, PartialOrd, Ord, Eq, Hash)]
-#[repr(usize)]
-pub enum Direction {
-    /// An `Outgoing` edge is an outward edge *from* the current node.
-    Outgoing = 0,
-    /// An `Incoming` edge is an inbound edge *to* the current node.
-    Incoming = 1,
-}
-
-copyclone!(Direction);
-
-impl Direction {
-    /// Return the opposite `Direction`.
-    #[inline]
-    pub fn opposite(&self) -> Direction {
-        match *self {
-            Outgoing => Incoming,
-            Incoming => Outgoing,
-        }
-    }
-
-    /// Return `0` for `Outgoing` and `1` for `Incoming`.
-    #[inline]
-    pub fn index(&self) -> usize {
-        (*self as usize) & 0x1
-    }
-}
+mod traverse;
 
 /// Marker type for a directed graph.
 #[derive(Copy, Debug)]
@@ -158,175 +40,6 @@ copyclone!(Directed);
 #[derive(Copy, Debug)]
 pub enum Undirected {}
 copyclone!(Undirected);
-
-// Non-repr(usize) version of Direction.
-#[derive(Copy, Clone, Debug, PartialEq)]
-enum CompactDirection {
-    Outgoing,
-    Incoming,
-}
-
-impl From<Direction> for CompactDirection {
-    fn from(d: Direction) -> Self {
-        match d {
-            Outgoing => CompactDirection::Outgoing,
-            Incoming => CompactDirection::Incoming,
-        }
-    }
-}
-
-impl PartialEq<Direction> for CompactDirection {
-    fn eq(&self, rhs: &Direction) -> bool {
-        (*self as usize) == (*rhs as usize)
-    }
-}
-
-iterator_wrap! {
-    Nodes <'a, N> where { N: 'a + NodeTrait }
-    item: N,
-    iter: Cloned<Keys<'a, N, Vec<(N, CompactDirection)>>>,
-}
-
-pub struct Neighbors<'a, N, Ty = Undirected>
-where
-    N: 'a,
-    Ty: EdgeType,
-{
-    iter: Iter<'a, (N, CompactDirection)>,
-    ty: PhantomData<Ty>,
-}
-
-impl<'a, N, Ty> Iterator for Neighbors<'a, N, Ty>
-where
-    N: NodeTrait,
-    Ty: EdgeType,
-{
-    type Item = N;
-    fn next(&mut self) -> Option<N> {
-        if Ty::is_directed() {
-            (&mut self.iter)
-                .filter_map(|&(n, dir)| if dir == Outgoing { Some(n) } else { None })
-                .next()
-        } else {
-            self.iter.next().map(|&(n, _)| n)
-        }
-    }
-}
-
-pub struct NeighborsDirected<'a, N, Ty>
-where
-    N: 'a,
-    Ty: EdgeType,
-{
-    iter: Iter<'a, (N, CompactDirection)>,
-    dir: Direction,
-    ty: PhantomData<Ty>,
-}
-
-impl<'a, N, Ty> Iterator for NeighborsDirected<'a, N, Ty>
-where
-    N: NodeTrait,
-    Ty: EdgeType,
-{
-    type Item = N;
-    fn next(&mut self) -> Option<N> {
-        if Ty::is_directed() {
-            let self_dir = self.dir;
-            (&mut self.iter)
-                .filter_map(move |&(n, dir)| if dir == self_dir { Some(n) } else { None })
-                .next()
-        } else {
-            self.iter.next().map(|&(n, _)| n)
-        }
-    }
-}
-
-pub struct Edges<'a, N, E: 'a, Ty>
-where
-    N: 'a + NodeTrait,
-    Ty: EdgeType,
-{
-    from: N,
-    edges: &'a IndexMap<(N, N), E>,
-    iter: Neighbors<'a, N, Ty>,
-}
-
-impl<'a, N, E, Ty> Iterator for Edges<'a, N, E, Ty>
-where
-    N: 'a + NodeTrait,
-    E: 'a,
-    Ty: EdgeType,
-{
-    type Item = (N, N, &'a E);
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            None => None,
-            Some(b) => {
-                let a = self.from;
-                match self.edges.get(&Graph::<N, E, Ty>::edge_key(a, b)) {
-                    None => unreachable!(),
-                    Some(edge) => Some((a, b, edge)),
-                }
-            }
-        }
-    }
-}
-
-pub struct AllEdges<'a, N, E: 'a, Ty>
-where
-    N: 'a + NodeTrait,
-{
-    inner: IndexMapIter<'a, (N, N), E>,
-    ty: PhantomData<Ty>,
-}
-
-impl<'a, N, E, Ty> Iterator for AllEdges<'a, N, E, Ty>
-where
-    N: 'a + NodeTrait,
-    E: 'a,
-    Ty: EdgeType,
-{
-    type Item = (N, N, &'a E);
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.inner.next() {
-            None => None,
-            Some((&(a, b), v)) => Some((a, b, v)),
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.inner.size_hint()
-    }
-
-    fn count(self) -> usize {
-        self.inner.count()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.inner
-            .nth(n)
-            .map(|(&(n1, n2), weight)| (n1, n2, weight))
-    }
-
-    fn last(self) -> Option<Self::Item> {
-        self.inner
-            .last()
-            .map(|(&(n1, n2), weight)| (n1, n2, weight))
-    }
-}
-
-impl<'a, N, E, Ty> DoubleEndedIterator for AllEdges<'a, N, E, Ty>
-where
-    N: 'a + NodeTrait,
-    E: 'a,
-    Ty: EdgeType,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.inner
-            .next_back()
-            .map(|(&(n1, n2), weight)| (n1, n2, weight))
-    }
-}
 
 /// A `Graph` with undirected edges.
 ///
@@ -535,13 +248,12 @@ where
     /// Produces an empty iterator if the node doesn't exist.<br>
     /// Iterator element type is `N`.
     pub fn neighbors(&self, a: N) -> Neighbors<N, Ty> {
-        Neighbors {
-            iter: match self.nodes.get(&a) {
-                Some(neigh) => neigh.iter(),
-                None => [].iter(),
-            },
-            ty: self.ty,
-        }
+        let iter = match self.nodes.get(&a) {
+            Some(neigh) => neigh.iter(),
+            None => [].iter(),
+        };
+
+        Neighbors::new(iter, self.ty)
     }
 
     /// Return an iterator of all neighbors that have an edge between them and
@@ -555,14 +267,12 @@ where
     /// Produces an empty iterator if the node doesn't exist.<br>
     /// Iterator element type is `N`.
     pub fn neighbors_directed(&self, a: N, dir: Direction) -> NeighborsDirected<N, Ty> {
-        NeighborsDirected {
-            iter: match self.nodes.get(&a) {
-                Some(neigh) => neigh.iter(),
-                None => [].iter(),
-            },
-            dir: dir,
-            ty: self.ty,
-        }
+        let iter = match self.nodes.get(&a) {
+            Some(neigh) => neigh.iter(),
+            None => [].iter(),
+        };
+
+        NeighborsDirected::new(iter, dir, self.ty)
     }
 
     /// Return an iterator of target nodes with an edge starting from `a`,
@@ -574,11 +284,7 @@ where
     /// Produces an empty iterator if the node doesn't exist.<br>
     /// Iterator element type is `(N, &E)`.
     pub fn edges(&self, from: N) -> Edges<N, E, Ty> {
-        Edges {
-            from: from,
-            iter: self.neighbors(from),
-            edges: &self.edges,
-        }
+        Edges::new(from, &self.edges, self.neighbors(from))
     }
 
     /// Return a reference to the edge weight connecting `a` with `b`, or
@@ -597,10 +303,7 @@ where
     ///
     /// Iterator element type is `(N, N, &E)`
     pub fn all_edges(&self) -> AllEdges<N, E, Ty> {
-        AllEdges {
-            inner: self.edges.iter(),
-            ty: self.ty,
-        }
+        AllEdges::new(self.edges.iter(), self.ty)
     }
 }
 
@@ -661,6 +364,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::graph::Graph;
+    use crate::graph::{Directed, Undirected};
 
     #[test]
     fn new() {
@@ -673,7 +377,7 @@ mod tests {
 
     #[test]
     fn with_capacity() {
-        let mut graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
+        let graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
 
         // Test nodes and edges count immediately after graph creation.
         assert_eq!(graph.node_count(), 0);
@@ -685,7 +389,8 @@ mod tests {
         let nodes_capacity = 4;
         let edges_capacity = 8;
 
-        let mut graph: Graph<&str, f32> = Graph::with_capacity(nodes_capacity, edges_capacity);
+        let graph: Graph<&str, f32> = Graph::with_capacity(nodes_capacity, edges_capacity);
+        // Get the allocated capacities.
         let (n, e) = graph.capacity();
         // Test nodes allocated capacity.
         assert!(
@@ -700,6 +405,23 @@ mod tests {
             "Allocated edges capacity `{}` must be equal or bigger then requested capacity `{}`.",
             e,
             edges_capacity
+        );
+    }
+
+    #[test]
+    fn edge_key() {
+        // Test for Directed Graph.
+        assert_eq!(Graph::<&str, f32, Directed>::edge_key("a", "b"), ("a", "b"));
+        assert_eq!(Graph::<&str, f32, Directed>::edge_key("b", "a"), ("b", "a"));
+
+        // Test for Undirected Graph.
+        assert_eq!(
+            Graph::<&str, f32, Undirected>::edge_key("a", "b"),
+            ("a", "b")
+        );
+        assert_eq!(
+            Graph::<&str, f32, Undirected>::edge_key("b", "a"),
+            ("a", "b")
         );
     }
 
