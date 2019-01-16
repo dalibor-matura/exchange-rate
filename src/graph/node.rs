@@ -117,6 +117,6 @@ impl<Ix: IndexType> DoubleEndedIterator for NodeIndices<Ix> {
 
 impl<Ix: IndexType> ExactSizeIterator for NodeIndices<Ix> {}
 
-/// A trait group for `GraphMap`'s node identifier.
+/// A trait group for `Graph`'s node identifier.
 pub trait NodeTrait: Copy + Ord + Hash {}
 impl<N> NodeTrait for N where N: Copy + Ord + Hash {}

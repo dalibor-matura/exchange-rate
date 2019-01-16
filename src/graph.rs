@@ -14,8 +14,8 @@
 //! - The security implication of using a third-party crate with no stable release yet are bad,
 //!   risk of malicious actions by outside influence.
 
-use crate::graph::edge::{Edge, EdgeIndex, EdgeType, IntoWeightedEdge};
-use crate::graph::node::{Node, NodeIndex, NodeTrait};
+use crate::graph::edge::{EdgeIndex, EdgeType, IntoWeightedEdge};
+use crate::graph::node::{NodeIndex, NodeTrait};
 use crate::graph::Direction::{Incoming, Outgoing};
 use indexmap::map::{Iter as IndexMapIter, Keys};
 use indexmap::IndexMap;
@@ -263,7 +263,7 @@ where
             None => None,
             Some(b) => {
                 let a = self.from;
-                match self.edges.get(&GraphMap::<N, E, Ty>::edge_key(a, b)) {
+                match self.edges.get(&Graph::<N, E, Ty>::edge_key(a, b)) {
                     None => unreachable!(),
                     Some(edge) => Some((a, b, edge)),
                 }
@@ -328,57 +328,20 @@ where
     }
 }
 
-///// An iterator over either the nodes without edges to them or from them.
-//pub struct Externals<'a, N: 'a, Ix: IndexType = DefaultIx> {
-//    iter: iter::Enumerate<slice::Iter<'a, Node<N, Ix>>>,
-//    dir: Direction,
-//}
-//
-//impl<'a, N: 'a, Ix: IndexType> Externals<'a, N, Ix> {
-//    pub fn new(iter: iter::Enumerate<slice::Iter<'a, Node<N, Ix>>>, dir: Direction) -> Self {
-//        Self { iter, dir }
-//    }
-//}
-//
-//impl<'a, N: 'a, Ix: IndexType> Iterator for Externals<'a, N, Ix> {
-//    type Item = NodeIndex<Ix>;
-//
-//    fn next(&mut self) -> Option<NodeIndex<Ix>> {
-//        let k = self.dir.index();
-//        loop {
-//            match self.iter.next() {
-//                None => return None,
-//                Some((index, node)) => {
-//                    if node.next[k] == EdgeIndex::end() {
-//                        return Some(NodeIndex::new(index));
-//                    } else {
-//                        continue;
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-/// A `GraphMap` with undirected edges.
+/// A `Graph` with undirected edges.
 ///
 /// For example, an edge between *1* and *2* is equivalent to an edge between
 /// *2* and *1*.
-pub type UnGraphMap<N, E> = GraphMap<N, E, Undirected>;
-/// A `GraphMap` with directed edges.
-///
-/// For example, an edge from *1* to *2* is distinct from an edge from *2* to
-/// *1*.
-pub type DiGraphMap<N, E> = GraphMap<N, E, Directed>;
+pub type UndirectedGraph<N, E> = Graph<N, E, Undirected>;
 
-/// `GraphMap<N, E, Ty>` is a graph datastructure using an associative array
+/// `Graph<N, E, Ty>` is a graph datastructure using an associative array
 /// of its node weights `N`.
 ///
 /// It uses an combined adjacency list and sparse adjacency matrix
 /// representation, using **O(|V| + |E|)** space, and allows testing for edge
 /// existance in constant time.
 ///
-/// `GraphMap` is parameterized over:
+/// `Graph` is parameterized over:
 ///
 /// - Associated data `N` for nodes and `E` for edges, called *weights*.
 /// - The node weight `N` must implement `Copy` and will be used as node
@@ -390,35 +353,35 @@ pub type DiGraphMap<N, E> = GraphMap<N, E, Directed>;
 /// - Edge type `Ty` that determines whether the graph edges are directed or
 /// undirected.
 ///
-/// You can use the type aliases `UnGraphMap` and `DiGraphMap` for convenience.
+/// You can use the type alias `UndirectedGraph` for convenience.
 ///
-/// `GraphMap` does not allow parallel edges, but self loops are allowed.
+/// `Graph` does not allow parallel edges, but self loops are allowed.
 ///
 /// Depends on crate feature `graphmap` (default).
 #[derive(Clone)]
-pub struct GraphMap<N, E, Ty> {
+pub struct Graph<N, E, Ty = Directed> {
     nodes: IndexMap<N, Vec<(N, CompactDirection)>>,
     edges: IndexMap<(N, N), E>,
     ty: PhantomData<Ty>,
 }
 
-impl<N: Eq + Hash + fmt::Debug, E: fmt::Debug, Ty: EdgeType> fmt::Debug for GraphMap<N, E, Ty> {
+impl<N: Eq + Hash + fmt::Debug, E: fmt::Debug, Ty: EdgeType> fmt::Debug for Graph<N, E, Ty> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.nodes.fmt(f)
     }
 }
 
-impl<N, E, Ty> GraphMap<N, E, Ty>
+impl<N, E, Ty> Graph<N, E, Ty>
 where
     N: NodeTrait,
     Ty: EdgeType,
 {
-    /// Create a new `GraphMap`
+    /// Create a new `Graph`
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new `GraphMap` with estimated capacity.
+    /// Create a new `Graph` with estimated capacity.
     pub fn with_capacity(nodes: usize, edges: usize) -> Self {
         Self {
             nodes: IndexMap::with_capacity(nodes),
@@ -451,7 +414,7 @@ where
         Ty::is_directed()
     }
 
-    /// Create a new `GraphMap` from an iterable of edges.
+    /// Create a new `Graph` from an iterable of edges.
     ///
     /// Node values are taken directly from the list.
     /// Edge weights `E` may either be specified in the list,
@@ -460,11 +423,11 @@ where
     /// Nodes are inserted automatically to match the edges.
     ///
     /// ```
-    /// use exchange_rate_path::graph::DiGraphMap;
+    /// use exchange_rate_path::graph::Graph;
     ///
-    /// // Create a new directed GraphMap.
+    /// // Create a new directed Graph.
     /// // Use a type hint to have `()` be the edge weight type.
-    /// let gr = DiGraphMap::<_, ()>::from_edges(&[
+    /// let gr = Graph::<_, ()>::from_edges(&[
     ///     (0, 1), (0, 2), (0, 3),
     ///     (1, 2), (1, 3),
     ///     (2, 3),
@@ -518,10 +481,10 @@ where
     /// #Examples
     ///
     /// ```
-    /// // Create a GraphMap with directed edges, and add one edge to it
-    /// use exchange_rate_path::graph::DiGraphMap;
+    /// // Create a Graph with directed edges, and add one edge to it
+    /// use exchange_rate_path::graph::Graph;
     ///
-    /// let mut g = DiGraphMap::new();
+    /// let mut g: Graph<_, _> = Graph::new();
     /// g.add_edge("x", "y", -1);
     /// assert_eq!(g.node_count(), 2);
     /// assert_eq!(g.edge_count(), 1);
@@ -641,19 +604,19 @@ where
     }
 }
 
-/// Create a new empty `GraphMap`.
-impl<N, E, Ty> Default for GraphMap<N, E, Ty>
+/// Create a new empty `Graph`.
+impl<N, E, Ty> Default for Graph<N, E, Ty>
 where
     N: NodeTrait,
     Ty: EdgeType,
 {
     fn default() -> Self {
-        GraphMap::with_capacity(0, 0)
+        Graph::with_capacity(0, 0)
     }
 }
 
-/// Create a new `GraphMap` from an iterable of edges.
-impl<N, E, Ty, Item> FromIterator<Item> for GraphMap<N, E, Ty>
+/// Create a new `Graph` from an iterable of edges.
+impl<N, E, Ty, Item> FromIterator<Item> for Graph<N, E, Ty>
 where
     Item: IntoWeightedEdge<E, NodeId = N>,
     N: NodeTrait,
@@ -674,7 +637,7 @@ where
 /// Extend the graph from an iterable of edges.
 ///
 /// Nodes are inserted automatically to match the edges.
-impl<N, E, Ty, Item> Extend<Item> for GraphMap<N, E, Ty>
+impl<N, E, Ty, Item> Extend<Item> for Graph<N, E, Ty>
 where
     Item: IntoWeightedEdge<E, NodeId = N>,
     N: NodeTrait,
@@ -695,116 +658,54 @@ where
     }
 }
 
-/// `Graph<N, E, Ix>` is a graph datastructure using an adjacency list representation.
-///
-/// `Graph` is parameterized over:
-///
-/// - Associated names `N` for nodes.
-///   The associated data can be of arbitrary type.
-/// - Associated data `E` for edges, called *weights*.
-///   The associated data can be of arbitrary type.
-/// - Index type `Ix`, which determines the maximum size of the graph.
-///
-/// The graph uses **O(|V| + |E|)** space, and allows fast node and edge insert,
-/// efficient graph search and graph algorithms.
-/// It implements **O(e')** edge lookup , where **e'** is some local measure of edge count.
-/// Based on the graph datastructure used in rustc.
-///
-/// ### Graph Indices
-///
-/// The graph maintains indices for nodes and edges, and edge weights may be accessed mutably.
-/// Indices range in a compact interval, for example for *n* nodes indices are 0 to *n* - 1
-/// inclusive.
-///
-/// `NodeIndex` and `EdgeIndex` are types that act as references to nodes and edges,
-/// but these are only stable across certain operations.
-/// **Adding nodes or edges keeps indices stable.
-/// Removing nodes or edges may shift other indices.**
-///
-/// The `Ix` parameter is `u32` by default. The goal is that you can ignore this parameter
-/// completely unless you need a very big graph -- then you can use `usize`.
-///
-/// ### Pros and Cons of Indices
-///
-/// * The fact that the node and edge indices in the graph each are numbered in compact
-/// intervals (from 0 to *n* - 1 for *n* nodes) simplifies some graph algorithms.
-///
-/// * You can select graph index integer type after the size of the graph. A smaller
-/// size may have better performance.
-///
-/// * Using indices allows mutation while traversing the graph, see `Dfs`,
-/// and `.neighbors(a).detach()`.
-///
-/// * The `Graph` is a regular rust collection and is `Send` and `Sync` (as long
-/// as associated data `N` and `E` are).
-pub struct Graph<N, E, Ix: IndexType = DefaultIx> {
-    nodes: Vec<Node<N, Ix>>,
-    edges: Vec<Edge<E, Ix>>,
-}
-
-impl<N, E, Ix> Graph<N, E, Ix>
-where
-    Ix: IndexType,
-{
-    /// Create a new `Graph`.
-    pub fn new() -> Self {
-        Graph {
-            nodes: Vec::new(),
-            edges: Vec::new(),
-        }
-    }
-
-    /// Create a new `Graph` with estimated capacity.
-    pub fn with_capacity(nodes: usize, edges: usize) -> Self {
-        Graph {
-            nodes: Vec::with_capacity(nodes),
-            edges: Vec::with_capacity(edges),
-        }
-    }
-
-    /// Return the number of nodes (vertices) in the graph.
-    ///
-    /// Computes in **O(1)** time.
-    pub fn node_count(&self) -> usize {
-        self.nodes.len()
-    }
-
-    /// Return the number of edges in the graph.
-    ///
-    /// Computes in **O(1)** time.
-    pub fn edge_count(&self) -> usize {
-        self.edges.len()
-    }
-
-    /// Add a node (also called vertex) with associated data `weight` to the graph.
-    ///
-    /// Computes in **O(1)** time.
-    ///
-    /// Return the index of the new node.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the Graph is at the maximum number of nodes for its index
-    /// type (N/A if usize).
-    pub fn add_node(&mut self, name: N) -> NodeIndex<Ix> {
-        let node = Node::new(name);
-        let node_idx = NodeIndex::new(self.nodes.len());
-
-        // Check for max capacity, except if we use usize.
-        assert!(<Ix as IndexType>::max().index() == !0 || NodeIndex::end() != node_idx);
-
-        self.nodes.push(node);
-        node_idx
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::graph::DiGraphMap;
+    use crate::graph::Graph;
 
     #[test]
-    fn check() {
-        let mut graph: DiGraphMap<&str, f32> = DiGraphMap::with_capacity(4, 6);
+    fn new() {
+        let graph: Graph<&str, f32> = Graph::new();
+
+        // Test nodes and edges count immediately after graph creation.
+        assert_eq!(graph.node_count(), 0);
+        assert_eq!(graph.edge_count(), 0);
+    }
+
+    #[test]
+    fn with_capacity() {
+        let mut graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
+
+        // Test nodes and edges count immediately after graph creation.
+        assert_eq!(graph.node_count(), 0);
+        assert_eq!(graph.edge_count(), 0);
+    }
+
+    #[test]
+    fn capacity() {
+        let nodes_capacity = 4;
+        let edges_capacity = 8;
+
+        let mut graph: Graph<&str, f32> = Graph::with_capacity(nodes_capacity, edges_capacity);
+        let (n, e) = graph.capacity();
+        // Test nodes allocated capacity.
+        assert!(
+            n >= nodes_capacity,
+            "Allocated nodes capacity `{}` must be equal or bigger then requested capacity `{}`.",
+            n,
+            nodes_capacity
+        );
+        // Test edges allocated capacity.
+        assert!(
+            e >= edges_capacity,
+            "Allocated edges capacity `{}` must be equal or bigger then requested capacity `{}`.",
+            e,
+            edges_capacity
+        );
+    }
+
+    #[test]
+    fn check_nodes_and_edges() {
+        let mut graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
         graph.add_edge("a", "b", 2.0);
 
         assert_eq!(graph.node_count(), 2);

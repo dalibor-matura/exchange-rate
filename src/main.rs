@@ -1,7 +1,7 @@
-use exchange_rate_path::graph::DiGraphMap;
+use exchange_rate_path::graph::Graph;
 
 fn main() {
-    let mut graph: DiGraphMap<&str, f32> = DiGraphMap::with_capacity(4, 6);
+    let mut graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
     graph.add_edge("a", "b", 2.0);
 
     assert_eq!(graph.node_count(), 2);
@@ -35,5 +35,9 @@ fn main() {
 
     // Get some output.
 
-    println!("Directed Graph: {:?}", graph);
+    // println!("Directed Graph: {:?}", graph);
+
+    for node in graph.nodes() {
+        print!("node: {:?}\n", node);
+    }
 }
