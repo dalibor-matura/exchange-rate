@@ -8,8 +8,9 @@
 use crate::graph::edge::EdgeIndex;
 use crate::graph::{DefaultIx, Direction, IndexType};
 use std::fmt;
+use std::hash::Hash;
 use std::marker::PhantomData;
-use std::ops::{Index, IndexMut, Range};
+use std::ops::Range;
 
 /// Node identifier.
 #[derive(Copy, Clone, Default, PartialEq, PartialOrd, Eq, Ord, Hash)]
@@ -115,3 +116,7 @@ impl<Ix: IndexType> DoubleEndedIterator for NodeIndices<Ix> {
 }
 
 impl<Ix: IndexType> ExactSizeIterator for NodeIndices<Ix> {}
+
+/// A trait group for `GraphMap`'s node identifier.
+pub trait NodeTrait: Copy + Ord + Hash {}
+impl<N> NodeTrait for N where N: Copy + Ord + Hash {}
