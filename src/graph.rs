@@ -191,7 +191,7 @@ where
     /// the associated data is updated and the old value is returned
     /// as `Some(old_weight)`.
     ///
-    /// #Examples
+    /// # Examples
     ///
     /// ```
     /// // Create a Graph with directed edges, and add one edge to it

@@ -16,7 +16,25 @@ pub mod result;
 pub struct FloydWarshall<N: Clone + Copy + Num + PartialOrd> {
     /// Operator to be used for weighted edges.
     op: Box<Fn(N, N) -> N>,
-    /// Comparison to be used for weighted paths.
+    /// Comparison to be used for weighted paths to determine if a newly tested path through `k`
+    /// should be added or not.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::cmp::Ordering::{Greater, Less};
+    /// use std::cmp::PartialOrd;
+    ///
+    /// let cmp: Box<Fn(f32, f32) -> bool> = Box::new(|x: f32, y: f32| x.partial_cmp(&y)
+    ///   .unwrap_or(Greater) == Less);
+    ///
+    /// let new_weight = 4.2;
+    /// let old_weight = 10.1;
+    ///
+    /// if cmp(new_weight, old_weight) {
+    ///   // Use the new weight and path through `k`.
+    /// }
+    /// ```
     cmp: Box<Fn(N, N) -> bool>,
     /// Discard loops (e.g. edges starting and ending in the same node) from calculation.
     discard_loops: bool,
@@ -25,7 +43,7 @@ pub struct FloydWarshall<N: Clone + Copy + Num + PartialOrd> {
 impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
     /// Create a new instance of FloydWarshall structure with default settings.
     ///
-    /// #Examples
+    /// # Examples
     ///
     /// ```
     /// use exchange_rate_path::floyd_warshall::FloydWarshall;
@@ -50,7 +68,7 @@ impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
     /// - the `op` (operator) to be used for weighted edges
     /// - the `cmp` (comparison) to be used for weighted paths
     ///
-    /// #Examples
+    /// # Examples
     ///
     /// ```
     /// use exchange_rate_path::floyd_warshall::FloydWarshall;
@@ -73,7 +91,7 @@ impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
     /// - the `discard_loops` to discard loops (e.g. edges starting and ending in the same node)
     ///   from calculation.
     ///
-    /// #Examples
+    /// # Examples
     ///
     /// ```
     /// use exchange_rate_path::floyd_warshall::FloydWarshall;
@@ -219,7 +237,7 @@ mod tests {
         let w_a_f = 4.44;
         let w_a_g = 0.8;
         let w_g_f = 0.6;
-        let w_a_h = 0.8;
+        let w_a_h = 8.8;
         let w_f_h = 1.0;
 
         let graph = Graph::<_, _>::from_edges(&[
@@ -250,5 +268,13 @@ mod tests {
 
         // Test that a shorter path was found for the `(a, f)` and it is through `g`.
         assert_eq!(path.edge_weight("a", "f"), Some(&(w_a_g + w_g_f)));
+        assert_eq!(next.edge_weight("a", "f"), Some(&"g"));
+        assert_eq!(next.edge_weight("g", "f"), Some(&"f"));
+
+        // Test that a shorter path was found for the `(a, f)` and it is through `g` and `f`.
+        assert_eq!(path.edge_weight("a", "h"), Some(&(w_a_g + w_g_f + w_f_h)));
+        assert_eq!(next.edge_weight("a", "h"), Some(&"g"));
+        assert_eq!(next.edge_weight("g", "h"), Some(&"f"));
+        assert_eq!(next.edge_weight("f", "h"), Some(&"h"));
     }
 }
