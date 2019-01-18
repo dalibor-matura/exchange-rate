@@ -14,8 +14,8 @@ where
     T: Eq + Copy + Hash + Ord + fmt::Debug,
     N: Clone + Copy + Num + PartialOrd,
 {
-    path: Graph<T, N>,
-    next: Graph<T, T>,
+    pub path: Graph<T, N>,
+    pub next: Graph<T, T>,
 }
 
 impl<T, N> FloydWarshallResult<T, N>
@@ -39,6 +39,6 @@ mod tests {
         let path: Graph<&str, f32> = Graph::new();
         let rate: Graph<&str, &str> = Graph::new();
 
-        let result: FloydWarshallResult<&str, f32> = FloydWarshallResult::new(path, rate);
+        let _result: FloydWarshallResult<&str, f32> = FloydWarshallResult::new(path, rate);
     }
 }

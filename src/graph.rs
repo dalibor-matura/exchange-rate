@@ -235,9 +235,7 @@ where
     ///
     /// Iterator element type is `N`.
     pub fn nodes(&self) -> Nodes<N> {
-        Nodes {
-            iter: self.nodes.keys().cloned(),
-        }
+        Nodes::new(self.nodes.keys().cloned())
     }
 
     /// Return an iterator of all nodes with an edge starting from `a`.

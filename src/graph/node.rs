@@ -13,7 +13,13 @@ impl<N> NodeTrait for N where N: Copy + Ord + Hash {}
 
 /// Iterator over Nodes.
 pub struct Nodes<'a, N: 'a + NodeTrait> {
-    pub(super) iter: Cloned<Keys<'a, N, Vec<(N, CompactDirection)>>>,
+    iter: Cloned<Keys<'a, N, Vec<(N, CompactDirection)>>>,
+}
+
+impl<'a, N: 'a + NodeTrait> Nodes<'a, N> {
+    pub fn new(iter: Cloned<Keys<'a, N, Vec<(N, CompactDirection)>>>) -> Self {
+        Self { iter }
+    }
 }
 
 impl<'a, N: 'a + NodeTrait> Iterator for Nodes<'a, N> {
