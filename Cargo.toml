@@ -11,3 +11,4 @@ keywords = ["exchange", "rate", "path", "currency"]
 
 [dependencies]
 indexmap = "1.0.2"
+num-traits = "0.2"
