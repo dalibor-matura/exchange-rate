@@ -1,4 +1,4 @@
-//! Floyd-Warshall algorithm.
+//! Floyd-Warshall result.
 
 use crate::graph::Graph;
 use num_traits::Num;
