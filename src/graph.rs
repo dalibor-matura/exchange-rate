@@ -374,6 +374,15 @@ mod tests {
     }
 
     #[test]
+    fn new_with_tuple_as_node() {
+        let graph: Graph<(&str, &str), f32> = Graph::new();
+
+        // Test nodes and edges count immediately after graph creation.
+        assert_eq!(graph.node_count(), 0);
+        assert_eq!(graph.edge_count(), 0);
+    }
+
+    #[test]
     fn with_capacity() {
         let graph: Graph<&str, f32> = Graph::with_capacity(4, 6);
 
@@ -469,7 +478,7 @@ mod tests {
         graph.add_node("a");
         graph.add_node("b");
 
-        // Test nodes count .
+        // Test nodes count.
         assert_eq!(graph.node_count(), 2);
     }
 
@@ -483,7 +492,7 @@ mod tests {
         graph.add_edge("a", "b", 2.3);
         graph.add_edge("b", "c", 4.1);
 
-        // Test nodes count .
+        // Test nodes count.
         assert_eq!(graph.edge_count(), 2);
     }
 
@@ -517,11 +526,46 @@ mod tests {
     }
 
     #[test]
+    fn add_node_as_tuple() {
+        let mut graph: Graph<(&str, &str), f32> = Graph::new();
+
+        // Add one node.
+        graph.add_node(("s", "a"));
+
+        // Test nodes count.
+        assert_eq!(graph.node_count(), 1);
+    }
+
+    #[test]
+    fn add_node_as_tuple_twide() {
+        let mut graph: Graph<(&str, &str), f32> = Graph::new();
+
+        // Add one node twice.
+        graph.add_node(("s", "a"));
+        graph.add_node(("s", "a"));
+
+        // Test nodes count, it should still be one.
+        assert_eq!(graph.node_count(), 1);
+    }
+
+    #[test]
     fn add_edge() {
         let mut graph: Graph<&str, f32> = Graph::new();
 
         // Add one edge.
         graph.add_edge("a", "b", 2.3);
+
+        // Test nodes and edges count.
+        assert_eq!(graph.node_count(), 2);
+        assert_eq!(graph.edge_count(), 1);
+    }
+
+    #[test]
+    fn add_edge_with_nodes_as_tuples() {
+        let mut graph: Graph<(&str, &str), f32> = Graph::new();
+
+        // Add one edge.
+        graph.add_edge(("s", "a"), ("r", "b"), 2.3);
 
         // Test nodes and edges count.
         assert_eq!(graph.node_count(), 2);
@@ -538,6 +582,22 @@ mod tests {
 
         // Test edge weight.
         assert_eq!(graph.edge_weight("a", "b"), Some(&edge_weight));
+    }
+
+    #[test]
+    fn edge_weight_with_nodes_as_tuples() {
+        let mut graph: Graph<(&str, &str), f32> = Graph::new();
+
+        // Add one edge twice.
+        let edge_weight = 2.4;
+        graph.add_edge(("s", "a"), ("r", "a"), 8.0);
+        graph.add_edge(("s", "a"), ("r", "a"), edge_weight);
+
+        // Test edge weight.
+        assert_eq!(
+            graph.edge_weight(("s", "a"), ("r", "a")),
+            Some(&edge_weight)
+        );
     }
 
     #[test]
