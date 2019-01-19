@@ -42,36 +42,46 @@ where
         self.path.edge_weight(a, b)
     }
 
+    /// Collect path nodes.
+    ///
+    /// The collected nodes list starts with `a`, ends with `b` and contains all the intermediate
+    /// steps on the best rated (shortest) path from `a` to `b`.
     pub fn collect_path_nodes(&self, a: N, b: N) -> Vec<N> {
+        // if self.next.contains_edge(a, b);
+
         // Get the first path step.
         let next = self.next.edge_weight(a, b);
 
-        // Return empty vector if there is no path between `a` and `b`.
-        if next.is_none() {
-            return vec![];
+        match next {
+            Some(&n) => {
+                // Initiate with `a`.
+                let mut nodes = vec![a];
+                // Collect the middle.
+                self.collect_path_middle(n, b, &mut nodes);
+                // Close with `b`.
+                nodes.push(b);
+
+                nodes
+            }
+            // Return empty vector if there is no path between `a` and `b`.
+            None => return vec![],
         }
+    }
 
-        // It is safe to unwrap now.
-        let mut next = *next.unwrap();
-
-        // Initiate nodes list with `a`.
-        let mut nodes = vec![a];
-
-        while next != b {
+    /// Collect path intermediate steps on the best rated (shortest) path from `a` to `b`.
+    fn collect_path_middle(&self, mut next: N, end: N, nodes: &mut Vec<N>) {
+        // Continue till the end node is reached.
+        while next != end {
             nodes.push(next);
 
-            let new_next = self.next.edge_weight(next, b);
+            // Find out a possible next step.
+            let new_next = self.next.edge_weight(next, end);
 
             match new_next {
                 Some(&n) => next = n,
                 None => break,
             }
         }
-
-        // Close nodes list with `b`.
-        nodes.push(b);
-
-        nodes
     }
 }
 
