@@ -9,9 +9,7 @@ pub mod response;
 use crate::request::Request;
 use crate::response::Response;
 
-pub struct ExchangeRatePath {
-
-}
+pub struct ExchangeRatePath {}
 
 impl ExchangeRatePath {
     /// Create a new instance of ExchangeRatePath structure.
@@ -33,7 +31,5 @@ impl ExchangeRatePath {
         Response {}
     }
 
-    fn write_response(response: Response) {
-
-    }
+    fn write_response(response: Response) {}
 }

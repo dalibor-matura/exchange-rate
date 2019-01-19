@@ -54,7 +54,7 @@ pub type UndirectedGraph<N, E> = Graph<N, E, Undirected>;
 /// representation, using **O(|V| + |E|)** space, and allows testing for edge
 /// existance in constant time.
 ///
-/// `Graph` is parameterized over:
+/// # `Graph` is parameterized over:
 ///
 /// - Associated data `N` for nodes and `E` for edges, called *weights*.
 /// - The node weight `N` must implement `Copy` and will be used as node
@@ -69,8 +69,6 @@ pub type UndirectedGraph<N, E> = Graph<N, E, Undirected>;
 /// You can use the type alias `UndirectedGraph` for convenience.
 ///
 /// `Graph` does not allow parallel edges, but self loops are allowed.
-///
-/// Depends on crate feature `graphmap` (default).
 #[derive(Clone)]
 pub struct Graph<N, E, Ty = Directed> {
     nodes: IndexMap<N, Vec<(N, CompactDirection)>>,

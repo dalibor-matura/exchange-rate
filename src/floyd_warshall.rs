@@ -13,9 +13,13 @@ use std::hash::Hash;
 pub mod result;
 
 /// Floyd-Warshall algorithm structure.
-pub struct FloydWarshall<N: Clone + Copy + Num + PartialOrd> {
+///
+/// # `FloydWarshall` algorithm is parameterized over:
+///
+/// - Number type `E` giving a weight to edges.
+pub struct FloydWarshall<E: Clone + Copy + Num + PartialOrd> {
     /// Operator to be used for weighted edges.
-    op: Box<Fn(N, N) -> N>,
+    op: Box<Fn(E, E) -> E>,
     /// Comparison to be used for weighted paths to determine if a newly tested path through `k`
     /// should be added or not.
     ///
@@ -35,12 +39,12 @@ pub struct FloydWarshall<N: Clone + Copy + Num + PartialOrd> {
     ///   // Use the new weight and path through `k`.
     /// }
     /// ```
-    cmp: Box<Fn(N, N) -> bool>,
+    cmp: Box<Fn(E, E) -> bool>,
     /// Discard loops (e.g. edges starting and ending in the same node) from calculation.
     discard_loops: bool,
 }
 
-impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
+impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     /// Create a new instance of FloydWarshall structure with default settings.
     ///
     /// # Examples
@@ -52,8 +56,8 @@ impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
     /// ```
     pub fn new() -> Self {
         // Initialize defaults.
-        let add = Box::new(|x: N, y: N| x + y);
-        let sharp_less = Box::new(|x: N, y: N| x.partial_cmp(&y).unwrap_or(Greater) == Less);
+        let add = Box::new(|x: E, y: E| x + y);
+        let sharp_less = Box::new(|x: E, y: E| x.partial_cmp(&y).unwrap_or(Greater) == Less);
 
         Self {
             op: add,
@@ -79,7 +83,7 @@ impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
     ///
     /// let alg: FloydWarshall<f32> = FloydWarshall::new_customized(mul, sharp_greater);
     /// ```
-    pub fn new_customized(op: Box<Fn(N, N) -> N>, cmp: Box<Fn(N, N) -> bool>) -> Self {
+    pub fn new_customized(op: Box<Fn(E, E) -> E>, cmp: Box<Fn(E, E) -> bool>) -> Self {
         Self::new_fully_customized(op, cmp, true)
     }
 
@@ -103,8 +107,8 @@ impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
     ///
     /// let alg: FloydWarshall<f32> = FloydWarshall::new_customized(mul, sharp_greater);
     pub fn new_fully_customized(
-        op: Box<Fn(N, N) -> N>,
-        cmp: Box<Fn(N, N) -> bool>,
+        op: Box<Fn(E, E) -> E>,
+        cmp: Box<Fn(E, E) -> bool>,
         discard_loops: bool,
     ) -> Self {
         Self {
@@ -114,12 +118,22 @@ impl<N: Clone + Copy + Num + PartialOrd> FloydWarshall<N> {
         }
     }
 
-    pub fn find_paths<T>(&self, graph: &Graph<T, N>) -> FloydWarshallResult<T, N>
+    /// Find all the shortest paths (or best rated paths based on algorithm customized settings).
+    ///
+    /// The result of type FloydWarshallResult holds both:
+    /// - best rates for all possible paths
+    /// - next node on the best rated (shortest) path for each possible path
+    ///
+    /// # Method is parameterized over:
+    ///
+    /// - Node index / label `N`.
+    /// - Number type `E` giving a weight to edges.
+    pub fn find_paths<N>(&self, graph: &Graph<N, E>) -> FloydWarshallResult<N, E>
     where
-        T: Eq + Copy + Hash + Ord + fmt::Debug,
+        N: Eq + Copy + Hash + Ord + fmt::Debug,
     {
-        let mut path: Graph<T, N> = graph.clone();
-        let mut next: Graph<T, T> = Graph::with_capacity(graph.node_count(), graph.edge_count());
+        let mut path: Graph<N, E> = graph.clone();
+        let mut next: Graph<N, N> = Graph::with_capacity(graph.node_count(), graph.edge_count());
 
         // Initialize next steps of each edge existing in `graph` with its end node.
         for (a, b, _) in graph.all_edges() {
