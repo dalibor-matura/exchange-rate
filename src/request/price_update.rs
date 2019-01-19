@@ -47,7 +47,7 @@ pub struct PriceUpdate {
 
 impl PriceUpdate {
     /// Create a new instance of `PriceUpdate` structure.
-    fn new(
+    pub fn new(
         timestamp: DateTime<FixedOffset>,
         exchange: String,
         source_currency: String,
@@ -122,7 +122,7 @@ impl PriceUpdate {
             ));
         }
 
-        let backward_factor = values[&ForwardFactor].parse::<f32>();
+        let backward_factor = values[&BackwardFactor].parse::<f32>();
         if backward_factor.is_err() {
             errors.push(format!(
                 "The line item <{}> can not be parsed (wrong format)!",
@@ -135,10 +135,10 @@ impl PriceUpdate {
             return Err(errors);
         }
 
-        // Get the rest of `String` values;
-        let exchange = values[&Exchange];
-        let source_currency = values[&SourceCurrency];
-        let destination_currency = values[&DestinationCurrency];
+        // Get the rest of `String` values, making it all uppercase to be more robust.
+        let exchange = values[&Exchange].to_uppercase();
+        let source_currency = values[&SourceCurrency].to_uppercase();
+        let destination_currency = values[&DestinationCurrency].to_uppercase();
 
         Ok(Self::new(
             timestamp.unwrap(),
@@ -148,5 +148,33 @@ impl PriceUpdate {
             forward_factor.unwrap(),
             backward_factor.unwrap(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::request::price_update::PriceUpdate;
+
+    #[test]
+    fn parse_line() {
+        let line = "2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009";
+        let price_update = PriceUpdate::parse_line(&line.to_string());
+
+        // Test that the line was parsed properly.
+        assert!(price_update.is_ok());
+
+        // It is safe to unwrap now.
+        let price_update = price_update.unwrap();
+
+        // Test properly parsed line items.
+        assert_eq!(
+            price_update.timestamp.to_rfc3339(),
+            String::from("2017-11-01T09:42:23+00:00")
+        );
+        assert_eq!(price_update.exchange, "KRAKEN");
+        assert_eq!(price_update.source_currency, "BTC");
+        assert_eq!(price_update.destination_currency, "USD");
+        assert_eq!(price_update.forward_factor, 1000.0);
+        assert_eq!(price_update.backward_factor, 0.0009);
     }
 }
