@@ -111,12 +111,10 @@ where
     fn edge_key(a: N, b: N) -> (N, N) {
         if Ty::is_directed() {
             (a, b)
+        } else if a <= b {
+            (a, b)
         } else {
-            if a <= b {
-                (a, b)
-            } else {
-                (b, a)
-            }
+            (b, a)
         }
     }
 
@@ -132,6 +130,8 @@ where
     /// or they are filled with default values.
     ///
     /// Nodes are inserted automatically to match the edges.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use exchange_rate_path::graph::Graph;

@@ -10,5 +10,6 @@ repository = "https://github.com/dalibor-matura/exchange-rate-path"
 keywords = ["exchange", "rate", "path", "currency"]
 
 [dependencies]
+chrono = "0.4"
 indexmap = "1.0.2"
 num-traits = "0.2"

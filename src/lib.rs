@@ -24,7 +24,13 @@ impl ExchangeRatePath {
     }
 
     fn form_request() -> Request {
-        Request {}
+        // Price update line:
+        // <timestamp> <exchange> <source_currency> <destination_currency> <forward_factor> <backward_factor>
+
+        // Exchange rate request line:
+        // EXCHANGE_RATE_REQUEST <source_exchange> <source_currency> <destination_exchange> <destination_currency>
+
+        Request::read_from_stdin()
     }
 
     fn process_request(request: Request) -> Response {
