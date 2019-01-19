@@ -12,11 +12,11 @@ impl ExchangeRateRequest {
     /// ## Example
     ///
     /// EXCHANGE_RATE_REQUEST KRAKEN BTC ETH
-    pub fn parse_line(line: &String) {
+    pub fn parse_line(line: &String) -> Result<ExchangeRateRequest, Vec<String>> {
         let mut a_iter = line.split_whitespace();
 
-        let a0 = a_iter.next().unwrap().parse::<i32>().expect("parse error");
-        let a1 = a_iter.next().unwrap().parse::<i32>().expect("parse error");
-        let a2 = a_iter.next().unwrap().parse::<i32>().expect("parse error");
+        // Todo: Fill in the real implementation.
+
+        Ok(ExchangeRateRequest {})
     }
 }

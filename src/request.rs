@@ -2,7 +2,7 @@
 
 use self::exchange_rate_request::ExchangeRateRequest;
 use self::price_update::PriceUpdate;
-use std::io;
+use std::io::{self, BufRead};
 
 mod exchange_rate_request;
 mod price_update;
@@ -26,21 +26,46 @@ impl Request {
     }
 
     pub fn read_from_stdin() -> Self {
-        let request = Request::new();
+        let mut request = Request::new();
 
-        let mut s = String::new();
-
-        io::stdin().read_line(&mut s).expect("IO:Stdin Read error!");
+        // Read all input and process it.
+        for line in io::stdin().lock().lines() {
+            if let Ok(s) = line {
+                request.process_line(&s);
+            }
+        }
 
         request
     }
+
+    fn process_line(&mut self, line: &String) {
+        let mut iter = line.split_whitespace();
+
+        // Process the first line item if it exists.
+        if let Some(first_item) = iter.next() {
+            // Match the line type based on the first line item.
+            // The line item is used as uppercase to be more robust.
+            match first_item.to_uppercase().as_ref() {
+                "EXCHANGE_RATE_REQUEST" => match ExchangeRateRequest::parse_line(line) {
+                    Ok(rate_request) => self.add_rate_request(rate_request),
+                    Err(errors) => (),
+                },
+                _ => match PriceUpdate::parse_line(line) {
+                    Ok(price_update) => self.add_price_update(price_update),
+                    Err(errors) => (),
+                },
+            }
+        }
+    }
+
+    fn add_rate_request(&mut self, rate_request: ExchangeRateRequest) {
+        self.rate_requests.push(rate_request);
+    }
+
+    fn add_price_update(&mut self, price_update: PriceUpdate) {
+        self.price_updates.push(price_update);
+    }
 }
-
-// Price update line:
-// <timestamp> <exchange> <source_currency> <destination_currency> <forward_factor> <backward_factor>
-
-// Exchange rate request line:
-// EXCHANGE_RATE_REQUEST <source_exchange> <source_currency> <destination_exchange> <destination_currency>
 
 #[cfg(test)]
 mod tests {}
