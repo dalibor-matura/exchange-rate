@@ -1,11 +1,14 @@
 //! Exchange Rate Path (ERP) algorithm.
 
+use crate::floyd_warshall::result::FloydWarshallResult;
+use crate::floyd_warshall::FloydWarshall;
 use crate::graph::Graph;
 use crate::request::Request;
 use crate::response::Response;
 use indexmap::IndexSet;
 use num_traits::Num;
 use std::clone::Clone;
+use std::cmp::Ordering::{Greater, Less};
 use std::cmp::{Eq, Ord, PartialOrd};
 use std::collections::hash_map::{Entry, HashMap};
 use std::fmt::Debug;
@@ -30,7 +33,7 @@ where
 
 impl<N, E> Algorithm<N, E>
 where
-    N: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash,
+    N: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash + Debug,
     <N as FromStr>::Err: Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,
@@ -54,6 +57,7 @@ where
     pub fn process(request: &Request<E>) -> Response {
         let mut alg = Algorithm::<N, E>::new();
         alg.construct_graph(request);
+        let result = alg.run_customized_floyd_warshall();
 
         Response {}
     }
@@ -156,6 +160,16 @@ where
     /// Return `Option<String>` as it is possible that there's no `String` with the index.
     fn index_to_string(&self, i: &N) -> Option<&String> {
         self.index_to_string.get(i)
+    }
+
+    fn run_customized_floyd_warshall(&mut self) -> FloydWarshallResult<(N, N), E> {
+        let mul = Box::new(|x: E, y: E| x + y);
+        let sharp_greater = Box::new(|x: E, y: E| x.partial_cmp(&y).unwrap_or(Less) == Greater);
+
+        let alg: FloydWarshall<E> = FloydWarshall::new_customized(mul, sharp_greater);
+        let result = alg.find_paths(&self.graph);
+
+        result
     }
 }
 
@@ -334,5 +348,20 @@ mod tests {
                 .edge_weight((e3_index, btc_index), (e1_index, btc_index)),
             Some(&1.0)
         );
+    }
+
+    #[test]
+    fn process() {
+        let text_input = "2017-11-01T09:42:23+00:00 E1 BTC USD 1000.0 0.0009
+2018-11-01T09:42:23+00:00 E1 ETH USD 100.0 0.001
+2018-11-01T09:42:23+00:00 E2 ETH USD 100.0 0.001
+2018-11-01T09:42:23+00:00 E3 ETH BTC 100.0 0.001"
+            .as_bytes();
+
+        // Test creation of Request from multiline text.
+        let mut input = BufReader::new(text_input);
+        let request = Request::<f32>::read_from(&mut input);
+
+        let _alg = Algorithm::<u32, f32>::process(&request);
     }
 }
