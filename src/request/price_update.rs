@@ -1,4 +1,4 @@
-//! PriceUpdate.
+//! Price Update.
 
 extern crate chrono;
 
@@ -50,23 +50,23 @@ impl fmt::Display for Items {
 /// The rest of `PriceUpdate` fields are just values (not indexing anything).
 pub type PriceUpdateIndex = (String, String, String);
 
-pub struct PriceUpdate<T>
+pub struct PriceUpdate<E>
 where
-    T: Clone + Copy + Num + PartialOrd + FromStr,
-    <T as FromStr>::Err: Debug,
+    E: Clone + Copy + Num + PartialOrd + FromStr,
+    <E as FromStr>::Err: Debug,
 {
     timestamp: DateTime<FixedOffset>,
     exchange: String,
     source_currency: String,
     destination_currency: String,
-    forward_factor: T,
-    backward_factor: T,
+    forward_factor: E,
+    backward_factor: E,
 }
 
-impl<T> PriceUpdate<T>
+impl<E> PriceUpdate<E>
 where
-    T: Clone + Copy + Num + PartialOrd + FromStr,
-    <T as FromStr>::Err: Debug,
+    E: Clone + Copy + Num + PartialOrd + FromStr,
+    <E as FromStr>::Err: Debug,
 {
     /// Create a new instance of `PriceUpdate` structure.
     pub fn new(
@@ -74,8 +74,8 @@ where
         exchange: String,
         source_currency: String,
         destination_currency: String,
-        forward_factor: T,
-        backward_factor: T,
+        forward_factor: E,
+        backward_factor: E,
     ) -> Self {
         Self {
             timestamp,
@@ -113,11 +113,11 @@ where
         &self.destination_currency
     }
 
-    pub fn get_forward_factor(&self) -> &T {
+    pub fn get_forward_factor(&self) -> &E {
         &self.forward_factor
     }
 
-    pub fn get_backward_factor(&self) -> &T {
+    pub fn get_backward_factor(&self) -> &E {
         &self.backward_factor
     }
 
@@ -130,7 +130,7 @@ where
     /// ## Example
     ///
     /// 2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009
-    pub fn parse_line(line: &String) -> Result<PriceUpdate<T>, Vec<String>> {
+    pub fn parse_line(line: &String) -> Result<PriceUpdate<E>, Vec<String>> {
         let mut iter = line.split_whitespace();
         let mut values = HashMap::new();
         let mut errors: Vec<String> = Vec::new();
@@ -170,7 +170,7 @@ where
             ));
         }
 
-        let forward_factor = values[&ForwardFactor].parse::<T>();
+        let forward_factor = values[&ForwardFactor].parse::<E>();
         if forward_factor.is_err() {
             errors.push(format!(
                 "The line item <{}> can not be parsed (wrong format)!",
@@ -178,7 +178,7 @@ where
             ));
         }
 
-        let backward_factor = values[&BackwardFactor].parse::<T>();
+        let backward_factor = values[&BackwardFactor].parse::<E>();
         if backward_factor.is_err() {
             errors.push(format!(
                 "The line item <{}> can not be parsed (wrong format)!",

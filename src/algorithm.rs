@@ -54,12 +54,11 @@ where
         }
     }
 
-    pub fn process(request: &Request<E>) -> Response {
+    pub fn process(request: &Request<E>) -> Response<N, E> {
         let mut alg = Algorithm::<N, E>::new();
         alg.construct_graph(request);
         let result = alg.run_customized_floyd_warshall();
-
-        Response {}
+        alg.form_response(&result)
     }
 
     fn construct_graph(&mut self, request: &Request<E>) {
@@ -170,6 +169,10 @@ where
         let result = alg.find_paths(&self.graph);
 
         result
+    }
+
+    fn form_response(&self, fw_result: &FloydWarshallResult<(N, N), E>) -> Response<N, E> {
+        Response::new()
     }
 }
 

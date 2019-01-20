@@ -15,19 +15,19 @@ mod exchange_rate_request;
 mod price_update;
 
 /// Exchange Rate Path Request structure.
-pub struct Request<T>
+pub struct Request<E>
 where
-    T: Clone + Copy + Num + PartialOrd + FromStr,
-    <T as FromStr>::Err: Debug,
+    E: Clone + Copy + Num + PartialOrd + FromStr,
+    <E as FromStr>::Err: Debug,
 {
-    price_updates: HashMap<PriceUpdateIndex, PriceUpdate<T>>,
+    price_updates: HashMap<PriceUpdateIndex, PriceUpdate<E>>,
     rate_requests: HashMap<ExchangeRateRequestIndex, ExchangeRateRequest>,
 }
 
-impl<T: Clone + Copy + Num + PartialOrd + FromStr> Request<T>
+impl<E: Clone + Copy + Num + PartialOrd + FromStr> Request<E>
 where
-    T: Clone + Copy + Num + PartialOrd + FromStr,
-    <T as FromStr>::Err: Debug,
+    E: Clone + Copy + Num + PartialOrd + FromStr,
+    <E as FromStr>::Err: Debug,
 {
     /// Create a new instance of empty `Request` structure.
     fn new() -> Self {
@@ -71,7 +71,7 @@ where
                         errors
                     ),
                 },
-                _ => match PriceUpdate::<T>::parse_line(line) {
+                _ => match PriceUpdate::<E>::parse_line(line) {
                     Ok(price_update) => self.add_price_update(price_update),
                     // The errors handling can be done better. Probably using logging mechanism
                     // or just outputting it to the `std::io::stderr`, letting the process continue
@@ -91,7 +91,7 @@ where
             .insert(rate_request.get_index(), rate_request);
     }
 
-    fn add_price_update(&mut self, price_update: PriceUpdate<T>) {
+    fn add_price_update(&mut self, price_update: PriceUpdate<E>) {
         let entry = self.price_updates.entry(price_update.get_index());
 
         match entry {
@@ -113,7 +113,7 @@ where
         }
     }
 
-    pub fn get_price_updates(&self) -> &HashMap<PriceUpdateIndex, PriceUpdate<T>> {
+    pub fn get_price_updates(&self) -> &HashMap<PriceUpdateIndex, PriceUpdate<E>> {
         &self.price_updates
     }
 

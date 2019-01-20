@@ -1,4 +1,4 @@
-//! ExchangeRateRequest.
+//! Exchange Rate Request.
 
 use self::Items::*;
 use chrono::{DateTime, FixedOffset};
