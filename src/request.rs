@@ -1,6 +1,5 @@
 //! Exchange Rate Path Request.
 
-// use crate::graph::Graph;
 use self::exchange_rate_request::{ExchangeRateRequest, ExchangeRateRequestIndex};
 use self::price_update::{PriceUpdate, PriceUpdateIndex};
 use num_traits::Num;
@@ -121,16 +120,6 @@ where
     pub fn get_rate_requests(&self) -> &HashMap<ExchangeRateRequestIndex, ExchangeRateRequest> {
         &self.rate_requests
     }
-
-    //    pub fn get_graph(&self) -> Graph<(&'static str, &'static str), f32> {
-    //        let mut graph = Graph::new();
-    //
-    //        for (_, price_update) in self.price_updates.iter() {
-    //            price_update.fill_graph(&mut graph);
-    //        }
-    //
-    //        graph
-    //    }
 }
 
 #[cfg(test)]
