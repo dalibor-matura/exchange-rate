@@ -1,8 +1,63 @@
 //! ExchangeRateRequest.
 
-pub struct ExchangeRateRequest {}
+use self::Items::*;
+use chrono::{DateTime, FixedOffset};
+use std::collections::HashMap;
+use std::fmt;
+
+#[derive(Eq, PartialEq, Hash)]
+pub enum Items {
+    LineType,
+    SourceExchange,
+    SourceCurrency,
+    DestinationExchange,
+    DestinationCurrency,
+}
+
+impl Items {
+    pub fn get_label(&self) -> String {
+        match self {
+            LineType => "EXCHANGE_RATE_REQUEST".to_string(),
+            SourceExchange => "source_exchange".to_string(),
+            SourceCurrency => "source_currency".to_string(),
+            DestinationExchange => "source_exchange".to_string(),
+            DestinationCurrency => "destination_exchange".to_string(),
+        }
+    }
+}
+
+impl fmt::Display for Items {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.get_label())
+    }
+}
+
+pub struct ExchangeRateRequest {
+    source_exchange: String,
+    source_currency: String,
+    destination_exchange: String,
+    destination_currency: String,
+}
 
 impl ExchangeRateRequest {
+    // The type of a line that can be parsed into the `ExchangeRateRequest` structure.
+    pub const LINE_TYPE: &'static str = "EXCHANGE_RATE_REQUEST";
+
+    /// Create a new instance of `ExchangeRateRequest` structure.
+    pub fn new(
+        source_exchange: String,
+        source_currency: String,
+        destination_exchange: String,
+        destination_currency: String,
+    ) -> Self {
+        Self {
+            source_exchange,
+            source_currency,
+            destination_exchange,
+            destination_currency,
+        }
+    }
+
     /// Parse input line and form a new `ExchangeRateRequest` struct from it.
     ///
     /// # `line` format
@@ -11,12 +66,81 @@ impl ExchangeRateRequest {
     ///
     /// ## Example
     ///
-    /// EXCHANGE_RATE_REQUEST KRAKEN BTC ETH
+    /// EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH
     pub fn parse_line(line: &String) -> Result<ExchangeRateRequest, Vec<String>> {
-        let mut a_iter = line.split_whitespace();
+        let mut iter = line.split_whitespace();
+        let mut values = HashMap::new();
+        let mut errors: Vec<String> = Vec::new();
 
-        // Todo: Fill in the real implementation.
+        // Collect raw values.
+        for item in &[
+            LineType,
+            SourceExchange,
+            SourceCurrency,
+            DestinationExchange,
+            DestinationCurrency,
+        ] {
+            let value: Option<&str> = iter.next();
 
-        Ok(ExchangeRateRequest {})
+            match value {
+                Some(s) => {
+                    values.insert(item, s);
+                }
+                None => {
+                    errors.push(format!("The line item <{}> is missing!", item));
+                }
+            }
+        }
+
+        // Continue only if none of the collected values is missing (no errors are present).
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+
+        // Validate line type.
+        let line_type = values[&LineType].to_uppercase();
+        if line_type != Self::LINE_TYPE {
+            errors.push(format!(
+                "The line item type identifier at the beginning of the line {} is missing!",
+                Self::LINE_TYPE
+            ));
+            return Err(errors);
+        }
+
+        // Get `String` values, making it all uppercase to be more robust.
+        let source_exchange = values[&SourceExchange].to_uppercase();
+        let source_currency = values[&SourceCurrency].to_uppercase();
+        let destination_exchange = values[&DestinationExchange].to_uppercase();
+        let destination_currency = values[&DestinationCurrency].to_uppercase();
+
+        Ok(Self::new(
+            source_exchange.to_string(),
+            source_currency.to_string(),
+            destination_exchange.to_string(),
+            destination_currency.to_string(),
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::request::exchange_rate_request::ExchangeRateRequest;
+
+    #[test]
+    fn parse_line() {
+        let line = "EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH";
+        let rate_request = ExchangeRateRequest::parse_line(&line.to_string());
+
+        // Test that the line was parsed properly.
+        assert!(rate_request.is_ok());
+
+        // It is safe to unwrap now.
+        let rate_request = rate_request.unwrap();
+
+        // Test properly parsed line items.
+        assert_eq!(rate_request.source_exchange, "KRAKEN");
+        assert_eq!(rate_request.source_currency, "BTC");
+        assert_eq!(rate_request.destination_exchange, "GDAX");
+        assert_eq!(rate_request.destination_currency, "ETH");
     }
 }

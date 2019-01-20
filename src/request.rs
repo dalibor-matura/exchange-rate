@@ -46,7 +46,7 @@ impl Request {
             // Match the line type based on the first line item.
             // The line item is used as uppercase to be more robust.
             match first_item.to_uppercase().as_ref() {
-                "EXCHANGE_RATE_REQUEST" => match ExchangeRateRequest::parse_line(line) {
+                ExchangeRateRequest::LINE_TYPE => match ExchangeRateRequest::parse_line(line) {
                     Ok(rate_request) => self.add_rate_request(rate_request),
                     Err(errors) => (),
                 },
