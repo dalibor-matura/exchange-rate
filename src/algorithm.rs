@@ -35,7 +35,7 @@ impl<N, E> Algorithm<N, E>
 where
     N: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash + Debug,
     <N as FromStr>::Err: Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr,
+    E: Clone + Copy + Num + PartialOrd + FromStr + Debug,
     <E as FromStr>::Err: Debug,
 {
     fn new() -> Self {

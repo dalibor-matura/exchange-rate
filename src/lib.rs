@@ -30,7 +30,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     pub fn run<T>(&mut self)
     where
-        T: Clone + Copy + Num + PartialOrd + FromStr,
+        T: Clone + Copy + Num + PartialOrd + FromStr + Debug,
         <T as FromStr>::Err: Debug,
     {
         let request = self.form_request::<T>();
@@ -48,7 +48,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     fn process_request<T>(request: Request<T>) -> Response
     where
-        T: Clone + Copy + Num + PartialOrd + FromStr,
+        T: Clone + Copy + Num + PartialOrd + FromStr + Debug,
         <T as FromStr>::Err: Debug,
     {
         Algorithm::<u32, T>::process(&request)
