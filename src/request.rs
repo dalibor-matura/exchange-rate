@@ -135,12 +135,37 @@ mod tests {
 EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH
 EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
             .as_bytes();
-        let mut input = BufReader::new(text_input);
 
+        // Test creation of Request from multiline text.
+        let mut input = BufReader::new(text_input);
         let mut request = Request::read_from(&mut input);
 
         // Test counts of PriceUpdate items and ExchangeRateRequest items.
         assert_eq!(request.price_updates.len(), 2);
         assert_eq!(request.rate_requests.len(), 2);
+    }
+
+    #[test]
+    fn read_from_skip_empty_lines() {
+        let text_input = "2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009
+\n
+2018-11-01T09:42:23+00:00 KRAKEN ETH USD 100.0 0.001
+\n\n
+EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH
+
+EXCHANGE_RATE_REQUEST KRAKEN ETH GDAX USD
+
+EXCHANGE_RATE_REQUEST KRAKEN COIN GDAX USD
+
+EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
+            .as_bytes();
+
+        // Test creation of Request from multiline text containing empty or whitespace-only lines.
+        let mut input = BufReader::new(text_input);
+        let mut request = Request::read_from(&mut input);
+
+        // Test counts of PriceUpdate items and ExchangeRateRequest items.
+        assert_eq!(request.price_updates.len(), 2);
+        assert_eq!(request.rate_requests.len(), 4);
     }
 }
