@@ -36,6 +36,14 @@ impl fmt::Display for Items {
     }
 }
 
+/// Index of `PriceUpdate` formed from its three keys:
+/// - exchange
+/// - source_currency
+/// - destination_currency
+///
+/// The rest of `PriceUpdate` fields are just values (not indexing anything).
+pub type PriceUpdateIndex = (String, String, String);
+
 pub struct PriceUpdate {
     timestamp: DateTime<FixedOffset>,
     exchange: String,
@@ -63,6 +71,20 @@ impl PriceUpdate {
             forward_factor,
             backward_factor,
         }
+    }
+
+    /// Get Index identifying current instance by its primary keys.
+    pub fn get_index(&self) -> PriceUpdateIndex {
+        (
+            self.exchange.clone(),
+            self.source_currency.clone(),
+            self.destination_currency.clone(),
+        )
+    }
+
+    /// Get timestamp.
+    pub fn get_timestamp(&self) -> &DateTime<FixedOffset> {
+        &self.timestamp
     }
 
     /// Parse input line and form a new `PriceUpdate` struct from it.

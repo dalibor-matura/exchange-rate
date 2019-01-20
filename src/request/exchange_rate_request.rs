@@ -32,6 +32,14 @@ impl fmt::Display for Items {
     }
 }
 
+/// Index of `PriceUpdate` formed from its three keys:
+/// - exchange
+/// - source_currency
+/// - destination_currency
+///
+/// The rest of `PriceUpdate` fields are just values (not indexing anything).
+pub type ExchangeRateRequestIndex = (String, String, String, String);
+
 pub struct ExchangeRateRequest {
     source_exchange: String,
     source_currency: String,
@@ -56,6 +64,16 @@ impl ExchangeRateRequest {
             destination_exchange,
             destination_currency,
         }
+    }
+
+    /// Get Index identifying current instance by its primary keys.
+    pub fn get_index(&self) -> ExchangeRateRequestIndex {
+        (
+            self.source_exchange.clone(),
+            self.source_currency.clone(),
+            self.destination_exchange.clone(),
+            self.destination_currency.clone(),
+        )
     }
 
     /// Parse input line and form a new `ExchangeRateRequest` struct from it.
