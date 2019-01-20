@@ -51,7 +51,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
         T: Clone + Copy + Num + PartialOrd + FromStr,
         <T as FromStr>::Err: Debug,
     {
-        Algorithm::process(&request)
+        Algorithm::<u32>::process(&request)
     }
 
     fn write_response(response: Response) {}
