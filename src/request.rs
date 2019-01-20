@@ -1,21 +1,35 @@
 //! Exchange Rate Path Request.
 
+// use crate::graph::Graph;
 use self::exchange_rate_request::{ExchangeRateRequest, ExchangeRateRequestIndex};
 use self::price_update::{PriceUpdate, PriceUpdateIndex};
+use num_traits::Num;
+use std::clone::Clone;
+use std::cmp::PartialOrd;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::io::BufRead;
+use std::str::FromStr;
 
 mod exchange_rate_request;
 mod price_update;
 
 /// Exchange Rate Path Request structure.
-pub struct Request {
-    price_updates: HashMap<PriceUpdateIndex, PriceUpdate>,
+pub struct Request<T>
+where
+    T: Clone + Copy + Num + PartialOrd + FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    price_updates: HashMap<PriceUpdateIndex, PriceUpdate<T>>,
     rate_requests: HashMap<ExchangeRateRequestIndex, ExchangeRateRequest>,
 }
 
-impl Request {
+impl<T: Clone + Copy + Num + PartialOrd + FromStr> Request<T>
+where
+    T: Clone + Copy + Num + PartialOrd + FromStr,
+    <T as FromStr>::Err: Debug,
+{
     /// Create a new instance of empty `Request` structure.
     fn new() -> Self {
         let price_updates = HashMap::new();
@@ -27,7 +41,7 @@ impl Request {
         }
     }
 
-    pub fn read_from<T: BufRead>(input: &mut T) -> Self {
+    pub fn read_from<I: BufRead>(input: &mut I) -> Self {
         let mut request = Self::new();
 
         // Read all input and process it.
@@ -58,7 +72,7 @@ impl Request {
                         errors
                     ),
                 },
-                _ => match PriceUpdate::parse_line(line) {
+                _ => match PriceUpdate::<T>::parse_line(line) {
                     Ok(price_update) => self.add_price_update(price_update),
                     // The errors handling can be done better. Probably using logging mechanism
                     // or just outputting it to the `std::io::stderr`, letting the process continue
@@ -78,7 +92,7 @@ impl Request {
             .insert(rate_request.get_index(), rate_request);
     }
 
-    fn add_price_update(&mut self, price_update: PriceUpdate) {
+    fn add_price_update(&mut self, price_update: PriceUpdate<T>) {
         let entry = self.price_updates.entry(price_update.get_index());
 
         match entry {
@@ -99,6 +113,24 @@ impl Request {
             }
         }
     }
+
+    pub fn get_price_updates(&self) -> &HashMap<PriceUpdateIndex, PriceUpdate<T>> {
+        &self.price_updates
+    }
+
+    pub fn get_rate_requests(&self) -> &HashMap<ExchangeRateRequestIndex, ExchangeRateRequest> {
+        &self.rate_requests
+    }
+
+    //    pub fn get_graph(&self) -> Graph<(&'static str, &'static str), f32> {
+    //        let mut graph = Graph::new();
+    //
+    //        for (_, price_update) in self.price_updates.iter() {
+    //            price_update.fill_graph(&mut graph);
+    //        }
+    //
+    //        graph
+    //    }
 }
 
 #[cfg(test)]
@@ -108,7 +140,7 @@ mod tests {
 
     #[test]
     fn process_line() {
-        let mut request = Request::new();
+        let mut request = Request::<f32>::new();
 
         // Test adding ProcessUpdate line.
         let price_update_line =
@@ -138,7 +170,7 @@ EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
 
         // Test creation of Request from multiline text.
         let mut input = BufReader::new(text_input);
-        let mut request = Request::read_from(&mut input);
+        let request = Request::<f32>::read_from(&mut input);
 
         // Test counts of PriceUpdate items and ExchangeRateRequest items.
         assert_eq!(request.price_updates.len(), 2);
@@ -162,7 +194,7 @@ EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
 
         // Test creation of Request from multiline text containing empty or whitespace-only lines.
         let mut input = BufReader::new(text_input);
-        let mut request = Request::read_from(&mut input);
+        let request = Request::<f32>::read_from(&mut input);
 
         // Test counts of PriceUpdate items and ExchangeRateRequest items.
         assert_eq!(request.price_updates.len(), 2);

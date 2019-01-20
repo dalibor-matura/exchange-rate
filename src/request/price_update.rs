@@ -2,10 +2,16 @@
 
 extern crate chrono;
 
+// use crate::graph::Graph;
 use self::Items::*;
 use chrono::{DateTime, FixedOffset};
+use num_traits::Num;
+use std::clone::Clone;
+use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::fmt;
+use std::fmt::Debug;
+use std::str::FromStr;
 
 #[derive(Eq, PartialEq, Hash)]
 pub enum Items {
@@ -44,24 +50,32 @@ impl fmt::Display for Items {
 /// The rest of `PriceUpdate` fields are just values (not indexing anything).
 pub type PriceUpdateIndex = (String, String, String);
 
-pub struct PriceUpdate {
+pub struct PriceUpdate<T>
+where
+    T: Clone + Copy + Num + PartialOrd + FromStr,
+    <T as FromStr>::Err: Debug,
+{
     timestamp: DateTime<FixedOffset>,
     exchange: String,
     source_currency: String,
     destination_currency: String,
-    forward_factor: f32,
-    backward_factor: f32,
+    forward_factor: T,
+    backward_factor: T,
 }
 
-impl PriceUpdate {
+impl<T> PriceUpdate<T>
+where
+    T: Clone + Copy + Num + PartialOrd + FromStr,
+    <T as FromStr>::Err: Debug,
+{
     /// Create a new instance of `PriceUpdate` structure.
     pub fn new(
         timestamp: DateTime<FixedOffset>,
         exchange: String,
         source_currency: String,
         destination_currency: String,
-        forward_factor: f32,
-        backward_factor: f32,
+        forward_factor: T,
+        backward_factor: T,
     ) -> Self {
         Self {
             timestamp,
@@ -87,6 +101,26 @@ impl PriceUpdate {
         &self.timestamp
     }
 
+    pub fn get_exchange(&self) -> &String {
+        &self.exchange
+    }
+
+    pub fn get_source_currency(&self) -> &String {
+        &self.source_currency
+    }
+
+    pub fn get_destination_currency(&self) -> &String {
+        &self.destination_currency
+    }
+
+    pub fn get_forward_factor(&self) -> &T {
+        &self.forward_factor
+    }
+
+    pub fn get_backward_factor(&self) -> &T {
+        &self.backward_factor
+    }
+
     /// Parse input line and form a new `PriceUpdate` struct from it.
     ///
     /// # `line` format
@@ -96,7 +130,7 @@ impl PriceUpdate {
     /// ## Example
     ///
     /// 2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009
-    pub fn parse_line(line: &String) -> Result<PriceUpdate, Vec<String>> {
+    pub fn parse_line(line: &String) -> Result<PriceUpdate<T>, Vec<String>> {
         let mut iter = line.split_whitespace();
         let mut values = HashMap::new();
         let mut errors: Vec<String> = Vec::new();
@@ -136,7 +170,7 @@ impl PriceUpdate {
             ));
         }
 
-        let forward_factor = values[&ForwardFactor].parse::<f32>();
+        let forward_factor = values[&ForwardFactor].parse::<T>();
         if forward_factor.is_err() {
             errors.push(format!(
                 "The line item <{}> can not be parsed (wrong format)!",
@@ -144,7 +178,7 @@ impl PriceUpdate {
             ));
         }
 
-        let backward_factor = values[&BackwardFactor].parse::<f32>();
+        let backward_factor = values[&BackwardFactor].parse::<T>();
         if backward_factor.is_err() {
             errors.push(format!(
                 "The line item <{}> can not be parsed (wrong format)!",
@@ -171,6 +205,13 @@ impl PriceUpdate {
             backward_factor.unwrap(),
         ))
     }
+
+    //    pub fn fill_graph(&self, graph: &mut Graph<(&'a str, &'a str), T>) {
+    //        let a = (&self.exchange[..], &self.source_currency[..]);
+    //        let b = (&self.exchange[..], &self.destination_currency[..]);
+    //
+    //        graph.add_edge(a, b, self.forward_factor);
+    //    }
 }
 
 #[cfg(test)]
@@ -181,7 +222,7 @@ mod tests {
     #[test]
     fn parse_line() {
         let line = "2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009";
-        let price_update = PriceUpdate::parse_line(&line.to_string());
+        let price_update = PriceUpdate::<f32>::parse_line(&line.to_string());
 
         // Test that the line was parsed properly.
         assert!(price_update.is_ok());
@@ -204,7 +245,7 @@ mod tests {
     #[test]
     fn parse_line_with_missing_values() {
         let line = "";
-        let price_update = PriceUpdate::parse_line(&line.to_string());
+        let price_update = PriceUpdate::<f32>::parse_line(&line.to_string());
 
         // Test that the line could not be parsed properly.
         assert!(price_update.is_err());
@@ -247,7 +288,7 @@ mod tests {
         let line = String::from(
             "201--11-01T09:42:23+00:00 KRAKEN BTC USD thousand zero-point-something-small",
         );
-        let price_update = PriceUpdate::parse_line(&line);
+        let price_update = PriceUpdate::<f32>::parse_line(&line);
 
         // Test that the line could not be parsed properly.
         assert!(price_update.is_err());
