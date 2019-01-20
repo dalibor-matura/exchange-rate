@@ -4,7 +4,7 @@ use self::exchange_rate_request::{ExchangeRateRequest, ExchangeRateRequestIndex}
 use self::price_update::{PriceUpdate, PriceUpdateIndex};
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
-use std::io::{self, BufRead};
+use std::io::BufRead;
 
 mod exchange_rate_request;
 mod price_update;
@@ -27,11 +27,11 @@ impl Request {
         }
     }
 
-    pub fn read_from_stdin() -> Self {
+    pub fn read_from<T: BufRead>(input: &mut T) -> Self {
         let mut request = Self::new();
 
         // Read all input and process it.
-        for line in io::stdin().lock().lines() {
+        for line in input.lines() {
             if let Ok(s) = line {
                 request.process_line(&s);
             }
@@ -50,11 +50,23 @@ impl Request {
             match first_item.to_uppercase().as_ref() {
                 ExchangeRateRequest::LINE_TYPE => match ExchangeRateRequest::parse_line(line) {
                     Ok(rate_request) => self.add_rate_request(rate_request),
-                    Err(errors) => (),
+                    // The errors handling can be done better. Probably using logging mechanism
+                    // or just outputting it to the `std::io::stderr`, letting the process continue
+                    // and thus being more robust.
+                    Err(errors) => panic!(
+                        "Errors occurred while processing input lines, errors: {:?}!",
+                        errors
+                    ),
                 },
                 _ => match PriceUpdate::parse_line(line) {
                     Ok(price_update) => self.add_price_update(price_update),
-                    Err(errors) => (),
+                    // The errors handling can be done better. Probably using logging mechanism
+                    // or just outputting it to the `std::io::stderr`, letting the process continue
+                    // and thus being more robust.
+                    Err(errors) => panic!(
+                        "Errors occurred while processing input lines, errors: {:?}!",
+                        errors
+                    ),
                 },
             }
         }
@@ -90,4 +102,45 @@ impl Request {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::request::Request;
+    use std::io::BufReader;
+
+    #[test]
+    fn process_line() {
+        let mut request = Request::new();
+
+        // Test adding ProcessUpdate line.
+        let price_update_line =
+            String::from("2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009");
+        request.process_line(&price_update_line);
+
+        // Test counts of PriceUpdate items and ExchangeRateRequest items.
+        assert_eq!(request.price_updates.len(), 1);
+        assert_eq!(request.rate_requests.len(), 0);
+
+        // Test adding ExchangeRateRequest line.
+        let price_update_line = String::from("EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH");
+        request.process_line(&price_update_line);
+
+        // Test counts of PriceUpdate items and ExchangeRateRequest items.
+        assert_eq!(request.price_updates.len(), 1);
+        assert_eq!(request.rate_requests.len(), 1);
+    }
+
+    #[test]
+    fn read_from() {
+        let text_input = "2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009
+2018-11-01T09:42:23+00:00 KRAKEN ETH USD 100.0 0.001
+EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH
+EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
+            .as_bytes();
+        let mut input = BufReader::new(text_input);
+
+        let mut request = Request::read_from(&mut input);
+
+        // Test counts of PriceUpdate items and ExchangeRateRequest items.
+        assert_eq!(request.price_updates.len(), 2);
+        assert_eq!(request.rate_requests.len(), 2);
+    }
+}

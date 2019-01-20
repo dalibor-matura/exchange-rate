@@ -244,8 +244,10 @@ mod tests {
 
     #[test]
     fn parse_line_with_parse_errors() {
-        let line = "201--11-01T09:42:23+00:00 KRAKEN BTC USD thousand zero-point-something-small";
-        let price_update = PriceUpdate::parse_line(&line.to_string());
+        let line = String::from(
+            "201--11-01T09:42:23+00:00 KRAKEN BTC USD thousand zero-point-something-small",
+        );
+        let price_update = PriceUpdate::parse_line(&line);
 
         // Test that the line could not be parsed properly.
         assert!(price_update.is_err());

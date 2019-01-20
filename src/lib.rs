@@ -8,29 +8,26 @@ pub mod response;
 
 use crate::request::Request;
 use crate::response::Response;
+use std::io::{self, BufRead};
 
-pub struct ExchangeRatePath {}
+pub struct ExchangeRatePath<I: BufRead> {
+    input: I,
+}
 
-impl ExchangeRatePath {
+impl<I: BufRead> ExchangeRatePath<I> {
     /// Create a new instance of ExchangeRatePath structure.
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(input: I) -> Self {
+        Self { input }
     }
 
-    pub fn run(&self) {
-        let request = Self::form_request();
+    pub fn run(&mut self) {
+        let request = self.form_request();
         let response = Self::process_request(request);
         Self::write_response(response);
     }
 
-    fn form_request() -> Request {
-        // Price update line:
-        // <timestamp> <exchange> <source_currency> <destination_currency> <forward_factor> <backward_factor>
-
-        // Exchange rate request line:
-        // EXCHANGE_RATE_REQUEST <source_exchange> <source_currency> <destination_exchange> <destination_currency>
-
-        Request::read_from_stdin()
+    fn form_request(&mut self) -> Request {
+        Request::read_from(&mut self.input)
     }
 
     fn process_request(request: Request) -> Response {
@@ -39,3 +36,6 @@ impl ExchangeRatePath {
 
     fn write_response(response: Response) {}
 }
+
+#[cfg(test)]
+mod tests {}
