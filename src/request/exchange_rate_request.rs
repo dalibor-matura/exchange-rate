@@ -101,7 +101,7 @@ impl ExchangeRateRequest {
         let line_type = values[&LineType].to_uppercase();
         if line_type != Self::LINE_TYPE {
             errors.push(format!(
-                "The line item type identifier at the beginning of the line {} is missing!",
+                "The line item type identifier at the beginning of the line {} is wrong!",
                 Self::LINE_TYPE
             ));
             return Err(errors);
@@ -125,6 +125,7 @@ impl ExchangeRateRequest {
 #[cfg(test)]
 mod tests {
     use crate::request::exchange_rate_request::ExchangeRateRequest;
+    use crate::request::exchange_rate_request::Items::*;
 
     #[test]
     fn parse_line() {
@@ -142,5 +143,66 @@ mod tests {
         assert_eq!(rate_request.source_currency, "BTC");
         assert_eq!(rate_request.destination_exchange, "GDAX");
         assert_eq!(rate_request.destination_currency, "ETH");
+    }
+
+    #[test]
+    fn parse_line_with_wrong_line_type() {
+        let line = "WRONG_LINE_TYPE KRAKEN BTC GDAX ETH";
+        let price_update = ExchangeRateRequest::parse_line(&line.to_string());
+
+        // Test that the line could not be parsed properly.
+        assert!(price_update.is_err());
+
+        // Unwrap errors as they should exist.
+        let mut errors = price_update.err().unwrap();
+
+        // Test that all errors are present.
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!(
+                "The line item type identifier at the beginning of the line {} is wrong!",
+                ExchangeRateRequest::LINE_TYPE
+            )
+        );
+
+        // No other error is expected.
+        assert!(errors.pop().is_none());
+    }
+
+    #[test]
+    fn parse_line_with_missing_values() {
+        let line = "";
+        let price_update = ExchangeRateRequest::parse_line(&line.to_string());
+
+        // Test that the line could not be parsed properly.
+        assert!(price_update.is_err());
+
+        // Unwrap errors as they should exist.
+        let mut errors = price_update.err().unwrap();
+
+        // Test that all errors are present.
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", DestinationCurrency)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", DestinationExchange)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", SourceCurrency)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", SourceExchange)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", LineType)
+        );
+
+        // No other error is expected.
+        assert!(errors.pop().is_none());
     }
 }

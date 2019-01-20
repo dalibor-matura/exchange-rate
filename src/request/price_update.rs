@@ -153,6 +153,7 @@ impl PriceUpdate {
 
 #[cfg(test)]
 mod tests {
+    use crate::request::price_update::Items::*;
     use crate::request::price_update::PriceUpdate;
 
     #[test]
@@ -176,5 +177,84 @@ mod tests {
         assert_eq!(price_update.destination_currency, "USD");
         assert_eq!(price_update.forward_factor, 1000.0);
         assert_eq!(price_update.backward_factor, 0.0009);
+    }
+
+    #[test]
+    fn parse_line_with_missing_values() {
+        let line = "";
+        let price_update = PriceUpdate::parse_line(&line.to_string());
+
+        // Test that the line could not be parsed properly.
+        assert!(price_update.is_err());
+
+        // Unwrap errors as they should exist.
+        let mut errors = price_update.err().unwrap();
+
+        // Test that all errors are present.
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", BackwardFactor)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", ForwardFactor)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", DestinationCurrency)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", SourceCurrency)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", Exchange)
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!("The line item <{}> is missing!", Timestamp)
+        );
+
+        // No other error is expected.
+        assert!(errors.pop().is_none());
+    }
+
+    #[test]
+    fn parse_line_with_parse_errors() {
+        let line = "201--11-01T09:42:23+00:00 KRAKEN BTC USD thousand zero-point-something-small";
+        let price_update = PriceUpdate::parse_line(&line.to_string());
+
+        // Test that the line could not be parsed properly.
+        assert!(price_update.is_err());
+
+        // Unwrap errors as they should exist.
+        let mut errors = price_update.err().unwrap();
+
+        // Test that all errors are present.
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                BackwardFactor
+            )
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                ForwardFactor
+            )
+        );
+        assert_eq!(
+            errors.pop().unwrap(),
+            format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                Timestamp
+            )
+        );
+
+        // No other error is expected.
+        assert!(errors.pop().is_none());
     }
 }
