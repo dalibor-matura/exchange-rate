@@ -2,11 +2,10 @@
 
 use self::exchange_rate_request::ExchangeRateRequest;
 use self::price_update::PriceUpdate;
+use indexmap::map::{Entry, IndexMap};
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
-use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::io::BufRead;
@@ -23,8 +22,8 @@ where
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,
 {
-    price_updates: HashMap<(N, N, N), PriceUpdate<N, E>>,
-    rate_requests: HashMap<(N, N, N, N), ExchangeRateRequest<N>>,
+    price_updates: IndexMap<(N, N, N), PriceUpdate<N, E>>,
+    rate_requests: IndexMap<(N, N, N, N), ExchangeRateRequest<N>>,
 }
 
 impl<N, E> Request<N, E>
@@ -36,8 +35,8 @@ where
 {
     /// Create a new instance of empty `Request` structure.
     fn new() -> Self {
-        let price_updates = HashMap::new();
-        let rate_requests = HashMap::new();
+        let price_updates = IndexMap::new();
+        let rate_requests = IndexMap::new();
 
         Self {
             price_updates,
@@ -102,8 +101,8 @@ where
         let entry = self.price_updates.entry(price_update.get_index());
 
         match entry {
-            // The 'PriceUpdate' with the same id already exists in the collection (`HashMap`).
-            Occupied(o) => {
+            // The 'PriceUpdate' with the same id already exists in the collection (`IndexMap`).
+            Entry::Occupied(o) => {
                 let existing = o.get();
 
                 // The newly provided `PriceUpdate` is more recent and thus
@@ -114,17 +113,17 @@ where
                 }
             }
             // The 'PriceUpdate' with the same id is not yet present in the collection, insert it.
-            Vacant(v) => {
+            Entry::Vacant(v) => {
                 v.insert(price_update);
             }
         }
     }
 
-    pub fn get_price_updates(&self) -> &HashMap<(N, N, N), PriceUpdate<N, E>> {
+    pub fn get_price_updates(&self) -> &IndexMap<(N, N, N), PriceUpdate<N, E>> {
         &self.price_updates
     }
 
-    pub fn get_rate_requests(&self) -> &HashMap<(N, N, N, N), ExchangeRateRequest<N>> {
+    pub fn get_rate_requests(&self) -> &IndexMap<(N, N, N, N), ExchangeRateRequest<N>> {
         &self.rate_requests
     }
 }

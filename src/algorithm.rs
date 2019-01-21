@@ -6,12 +6,12 @@ use crate::graph::Graph;
 use crate::request::Request;
 use crate::response::best_rate_path::BestRatePath;
 use crate::response::Response;
+use indexmap::map::{Entry, IndexMap};
 use indexmap::IndexSet;
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::Ordering::{Greater, Less};
 use std::cmp::{Eq, Ord, PartialOrd};
-use std::collections::hash_map::{Entry, HashMap};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::AddAssign;
@@ -34,10 +34,10 @@ where
     <I as FromStr>::Err: Debug,
 {
     graph: Graph<(I, I), E>,
-    node_to_index: HashMap<N, I>,
-    index_to_node: HashMap<I, N>,
+    node_to_index: IndexMap<N, I>,
+    index_to_node: IndexMap<I, N>,
     counter: I,
-    currency_exchanges: HashMap<I, IndexSet<I>>,
+    currency_exchanges: IndexMap<I, IndexSet<I>>,
 }
 
 impl<N, E, I> Algorithm<N, E, I>
@@ -51,10 +51,10 @@ where
 {
     fn new() -> Self {
         let graph = Graph::<(I, I), E>::new();
-        let node_to_index = HashMap::<N, I>::new();
-        let index_to_node = HashMap::<I, N>::new();
+        let node_to_index = IndexMap::<N, I>::new();
+        let index_to_node = IndexMap::<I, N>::new();
         let counter = I::zero();
-        let currency_exchanges = HashMap::<I, IndexSet<I>>::new();
+        let currency_exchanges = IndexMap::<I, IndexSet<I>>::new();
 
         Self {
             graph,
@@ -157,7 +157,7 @@ where
                 self.counter += I::one();
                 // Use counter as a new index.
                 v.insert(self.counter);
-                // Update the reverse `HashMap`.
+                // Update the reverse `IndexMap`.
                 self.index_to_node.insert(self.counter, s);
                 // Return the index.
                 self.counter
@@ -508,9 +508,9 @@ mod tests {
 2019-01-20T09:42:23+00:00 CoinBene ETH USD 117.44 0.0072
 2019-01-20T09:42:23+00:00 ZBG ETH USD 117.45 0.0071
 
-EXCHANGE_RATE_REQUEST BitMEX BTC EXX BTC"
-            //EXCHANGE_RATE_REQUEST BitMEX BTC EXX ETH
-            //EXCHANGE_RATE_REQUEST CoinBene ETH BiBox USD"
+EXCHANGE_RATE_REQUEST BitMEX BTC EXX BTC
+EXCHANGE_RATE_REQUEST BitMEX BTC EXX ETH
+EXCHANGE_RATE_REQUEST CoinBene ETH BiBox USD"
             .as_bytes();
 
         // Test creation of Request from multiline text.
@@ -521,7 +521,7 @@ EXCHANGE_RATE_REQUEST BitMEX BTC EXX BTC"
 
         // println!("{}", response.get_best_rate_path());
 
-        // assert_eq!(response.get_best_rate_path().len(), 3);
+        assert_eq!(response.get_best_rate_path().len(), 3);
         assert_eq!(
             response.get_best_rate_path().first().unwrap().get_rate(),
             &1.0
