@@ -4,6 +4,7 @@ use crate::floyd_warshall::result::FloydWarshallResult;
 use crate::floyd_warshall::FloydWarshall;
 use crate::graph::Graph;
 use crate::request::Request;
+use crate::response::best_rate_path::BestRatePath;
 use crate::response::Response;
 use indexmap::IndexSet;
 use num_traits::Num;
@@ -54,11 +55,11 @@ where
         }
     }
 
-    pub fn process(request: &Request<E>) -> Response<N, E> {
+    pub fn process(request: &Request<E>) -> Response<(N, N), E> {
         let mut alg = Algorithm::<N, E>::new();
         alg.construct_graph(request);
         let result = alg.run_customized_floyd_warshall();
-        alg.form_response(&result)
+        alg.form_response(request, &result)
     }
 
     fn construct_graph(&mut self, request: &Request<E>) {
@@ -171,8 +172,46 @@ where
         result
     }
 
-    fn form_response(&self, fw_result: &FloydWarshallResult<(N, N), E>) -> Response<N, E> {
-        Response::new()
+    fn form_response(
+        &mut self,
+        request: &Request<E>,
+        fw_result: &FloydWarshallResult<(N, N), E>,
+    ) -> Response<(N, N), E> {
+        let mut response = Response::new();
+
+        // Process all `PriceUpdates`.
+        for (_, rate_request) in request.get_rate_requests().iter() {
+            // Prepare indexes.
+            let source_exchange_index =
+                self.string_to_index(rate_request.get_source_currency().clone());
+            let source_currency_index =
+                self.string_to_index(rate_request.get_source_currency().clone());
+            let destination_exchange_index =
+                self.string_to_index(rate_request.get_destination_currency().clone());
+            let destination_currency_index =
+                self.string_to_index(rate_request.get_destination_currency().clone());
+
+            // Get star and end node.
+            let a = (source_exchange_index, source_currency_index);
+            let b = (destination_exchange_index, destination_currency_index);
+
+            // Prepare `BestRatePath`.
+            let rate_raw = fw_result.get_path_rate(a, b);
+            let path = fw_result.collect_path_nodes(a, b);
+
+            match rate_raw {
+                Some(&rate) => {
+                    let best_rate_path = BestRatePath::<(N, N), E>::new(rate, path);
+                    response.add_best_rate_path(best_rate_path);
+                }
+                None => {
+                    // It would be probably good to include information about non-existing
+                    // Rate request as a part of `Response` or at least log it.
+                }
+            }
+        }
+
+        response
     }
 }
 
@@ -180,6 +219,7 @@ where
 mod tests {
     use crate::algorithm::Algorithm;
     use crate::request::Request;
+    use crate::response::Response;
     use std::io::BufReader;
 
     #[test]
@@ -358,13 +398,18 @@ mod tests {
         let text_input = "2017-11-01T09:42:23+00:00 E1 BTC USD 1000.0 0.0009
 2018-11-01T09:42:23+00:00 E1 ETH USD 100.0 0.001
 2018-11-01T09:42:23+00:00 E2 ETH USD 100.0 0.001
-2018-11-01T09:42:23+00:00 E3 ETH BTC 100.0 0.001"
+2018-11-01T09:42:23+00:00 E2 BTC USD 1002.0 0.00092
+2018-11-01T09:42:23+00:00 E3 ETH BTC 100.0 0.001
+EXCHANGE_RATE_REQUEST E1 BTC E3 ETH
+EXCHANGE_RATE_REQUEST E1 BTC E3 USD"
             .as_bytes();
 
         // Test creation of Request from multiline text.
         let mut input = BufReader::new(text_input);
         let request = Request::<f32>::read_from(&mut input);
 
-        let _alg = Algorithm::<u32, f32>::process(&request);
+        let response = Algorithm::<u32, f32>::process(&request);
+
+
     }
 }

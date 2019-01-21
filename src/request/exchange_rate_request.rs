@@ -76,6 +76,22 @@ impl ExchangeRateRequest {
         )
     }
 
+    pub fn get_source_exchange(&self) -> &String {
+        &self.source_exchange
+    }
+
+    pub fn get_source_currency(&self) -> &String {
+        &self.source_currency
+    }
+
+    pub fn get_destination_exchange(&self) -> &String {
+        &self.destination_exchange
+    }
+
+    pub fn get_destination_currency(&self) -> &String {
+        &self.destination_currency
+    }
+
     /// Parse input line and form a new `ExchangeRateRequest` struct from it.
     ///
     /// # `line` format

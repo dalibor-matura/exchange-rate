@@ -1,6 +1,6 @@
 //! Exchange Rate Path Response.
 
-mod best_rate_path;
+pub mod best_rate_path;
 
 use self::best_rate_path::BestRatePath;
 use num_traits::Num;
@@ -27,6 +27,10 @@ where
         Self {
             best_rate_paths: Vec::new(),
         }
+    }
+
+    pub fn add_best_rate_path(&mut self, best_rate_path: BestRatePath<N, E>) {
+        self.best_rate_paths.push(best_rate_path);
     }
 }
 

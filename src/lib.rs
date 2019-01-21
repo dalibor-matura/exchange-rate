@@ -46,7 +46,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
         Request::<T>::read_from(&mut self.input)
     }
 
-    fn process_request<T>(request: Request<T>) -> Response<u32, T>
+    fn process_request<T>(request: Request<T>) -> Response<(u32, u32), T>
     where
         T: Clone + Copy + Num + PartialOrd + FromStr + Debug,
         <T as FromStr>::Err: Debug,
@@ -54,7 +54,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
         Algorithm::<u32, T>::process(&request)
     }
 
-    fn write_response<T>(response: Response<u32, T>)
+    fn write_response<T>(response: Response<(u32, u32), T>)
     where
         T: Clone + Copy + Num + PartialOrd + FromStr + Debug,
         <T as FromStr>::Err: Debug,

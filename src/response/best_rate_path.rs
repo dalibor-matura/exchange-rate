@@ -20,4 +20,15 @@ where
     N: Eq + Copy + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
+    pub fn new(rate: E, path: Vec<N>) -> Self {
+        Self { rate, path }
+    }
+
+    pub fn get_start_node(&self) -> Option<&N> {
+        self.path.first()
+    }
+
+    pub fn get_end_node(&self) -> Option<&N> {
+        self.path.last()
+    }
 }
