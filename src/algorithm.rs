@@ -173,7 +173,7 @@ where
     }
 
     fn run_customized_floyd_warshall(&mut self) -> FloydWarshallResult<(I, I), E> {
-        let mul = Box::new(|x: E, y: E| x + y);
+        let mul = Box::new(|x: E, y: E| x * y);
         let sharp_greater = Box::new(|x: E, y: E| x.partial_cmp(&y).unwrap_or(Less) == Greater);
 
         let alg: FloydWarshall<E> = FloydWarshall::new_customized(mul, sharp_greater);
@@ -415,12 +415,92 @@ mod tests {
     }
 
     #[test]
+    fn run_customized_floyd_warshall() {
+        let mut alg = Algorithm::<String, f32, u32>::new();
+
+        let text_input = "2017-11-01T09:42:23+00:00 E1 BTC USD 1000.0 0.0009
+2018-11-01T09:42:23+00:00 E1 ETH USD 102.0 0.009
+2018-11-01T09:42:23+00:00 E2 ETH USD 100.0 0.0096
+2018-11-01T09:42:23+00:00 E3 ETH BTC 0.08 10"
+            .as_bytes();
+
+        // Test creation of Request from multiline text.
+        let mut input = BufReader::new(text_input);
+        let request = Request::<String, f32>::read_from(&mut input);
+
+        alg.construct_graph(&request);
+        let result = alg.run_customized_floyd_warshall();
+
+        // Exchanges.
+        let e1 = String::from("E1");
+        let e2 = String::from("E2");
+        let e3 = String::from("E3");
+
+        // Currencies.
+        let btc = String::from("BTC");
+        let eth = String::from("ETH");
+        let usd = String::from("USD");
+
+        //
+        let e1_index = alg.node_to_index(e1.clone());
+        let e2_index = alg.node_to_index(e2.clone());
+        let e3_index = alg.node_to_index(e3.clone());
+        let btc_index = alg.node_to_index(btc.clone());
+        let eth_index = alg.node_to_index(eth.clone());
+        let usd_index = alg.node_to_index(usd.clone());
+
+        // Test rate and path from `(E1, ETH)` to `(E2, ETH)`.
+        assert_eq!(
+            result.get_path_rate((e1_index, eth_index), (e2_index, eth_index)),
+            Some(&1.0)
+        );
+        assert_eq!(
+            result.collect_path_nodes((e1_index, eth_index), (e2_index, eth_index)),
+            vec![(e1_index, eth_index), (e2_index, eth_index)]
+        );
+
+        // Test rate and path from `(E1, ETH)` to `(E3, ETH)`.
+        assert_eq!(
+            result.get_path_rate((e1_index, eth_index), (e3_index, eth_index)),
+            Some(&1.0)
+        );
+        assert_eq!(
+            result.collect_path_nodes((e1_index, eth_index), (e3_index, eth_index)),
+            vec![(e1_index, eth_index), (e3_index, eth_index)]
+        );
+
+        // Test rate and path from `(E2, ETH)` to `(E3, ETH)`.
+        assert_eq!(
+            result.get_path_rate((e2_index, eth_index), (e3_index, eth_index)),
+            Some(&1.0)
+        );
+        assert_eq!(
+            result.collect_path_nodes((e2_index, eth_index), (e3_index, eth_index)),
+            vec![(e2_index, eth_index), (e3_index, eth_index)]
+        );
+
+        // Test rate and path from `(E2, ETH)` to `(E1, USD)`.
+        assert_eq!(
+            result.get_path_rate((e2_index, eth_index), (e1_index, usd_index)),
+            Some(&102.0)
+        );
+        assert_eq!(
+            result.collect_path_nodes((e2_index, eth_index), (e1_index, usd_index)),
+            vec![
+                (e2_index, eth_index),
+                (e1_index, eth_index),
+                (e1_index, usd_index)
+            ]
+        );
+    }
+
+    #[test]
     fn process() {
         let text_input = "2017-11-01T09:42:23+00:00 E1 BTC USD 1000.0 0.0009
-2018-11-01T09:42:23+00:00 E1 ETH USD 100.0 0.001
-2018-11-01T09:42:23+00:00 E2 ETH USD 100.0 0.001
+2018-11-01T09:42:23+00:00 E1 ETH USD 100.0 0.01
+2018-11-01T09:42:23+00:00 E2 ETH USD 100.0 0.01
 2018-11-01T09:42:23+00:00 E2 BTC USD 1002.0 0.00092
-2018-11-01T09:42:23+00:00 E3 ETH BTC 100.0 0.001
+2018-11-01T09:42:23+00:00 E3 ETH BTC 100.0 0.01
 EXCHANGE_RATE_REQUEST E1 BTC E3 ETH
 EXCHANGE_RATE_REQUEST E1 BTC E3 USD"
             .as_bytes();
@@ -430,5 +510,9 @@ EXCHANGE_RATE_REQUEST E1 BTC E3 USD"
         let request = Request::<String, f32>::read_from(&mut input);
 
         let response = Algorithm::<String, f32, u32>::process(&request);
+
+        // println!("{}", response.get_best_rate_path());
+
+        // assert_eq!(response.get_best_rate_path().first().unwrap().get_rate(), &1.2);
     }
 }

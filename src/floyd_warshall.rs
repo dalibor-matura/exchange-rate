@@ -78,7 +78,7 @@ impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     /// use exchange_rate_path::floyd_warshall::FloydWarshall;
     /// use std::cmp::Ordering::{Greater, Less};
     ///
-    /// let mul = Box::new(|x: f32, y: f32| x + y);
+    /// let mul = Box::new(|x: f32, y: f32| x * y);
     /// let sharp_greater = Box::new(|x: f32, y: f32| x.partial_cmp(&y).unwrap_or(Less) == Greater);
     ///
     /// let alg: FloydWarshall<f32> = FloydWarshall::new_customized(mul, sharp_greater);
@@ -101,7 +101,7 @@ impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     /// use exchange_rate_path::floyd_warshall::FloydWarshall;
     /// use std::cmp::Ordering::{Greater, Less};
     ///
-    /// let mul = Box::new(|x: f32, y: f32| x + y);
+    /// let mul = Box::new(|x: f32, y: f32| x * y);
     /// let sharp_greater = Box::new(|x: f32, y: f32| x.partial_cmp(&y).unwrap_or(Less) == Greater);
     /// let discard_loops = false;
     ///
@@ -223,7 +223,7 @@ mod tests {
 
     #[test]
     fn new_customized() {
-        let mul = Box::new(|x: f32, y: f32| x + y);
+        let mul = Box::new(|x: f32, y: f32| x * y);
         let sharp_greater = Box::new(|x: f32, y: f32| x.partial_cmp(&y).unwrap_or(Less) == Greater);
 
         let _alg: FloydWarshall<f32> = FloydWarshall::new_customized(mul, sharp_greater);
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn new_fully_customized() {
-        let mul = Box::new(|x: f32, y: f32| x + y);
+        let mul = Box::new(|x: f32, y: f32| x * y);
         let sharp_less = Box::new(|x: f32, y: f32| x.partial_cmp(&y).unwrap_or(Greater) == Less);
         let discard_loops = false;
 

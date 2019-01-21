@@ -24,6 +24,14 @@ where
         Self { rate, path }
     }
 
+    pub fn get_rate(&self) -> &E {
+        &self.rate
+    }
+
+    pub fn get_path(&self) -> &Vec<N> {
+        &self.path
+    }
+
     pub fn get_start_node(&self) -> Option<&N> {
         self.path.first()
     }

@@ -32,6 +32,10 @@ where
     pub fn add_best_rate_path(&mut self, best_rate_path: BestRatePath<N, E>) {
         self.best_rate_paths.push(best_rate_path);
     }
+
+    pub fn get_best_rate_path(&self) -> &Vec<BestRatePath<N, E>> {
+        &self.best_rate_paths
+    }
 }
 
 #[cfg(test)]
