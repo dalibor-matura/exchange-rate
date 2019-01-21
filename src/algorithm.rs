@@ -193,11 +193,11 @@ where
         for (_, rate_request) in request.get_rate_requests().iter() {
             // Prepare indexes.
             let source_exchange_index =
-                self.node_to_index(rate_request.get_source_currency().clone());
+                self.node_to_index(rate_request.get_source_exchange().clone());
             let source_currency_index =
                 self.node_to_index(rate_request.get_source_currency().clone());
             let destination_exchange_index =
-                self.node_to_index(rate_request.get_destination_currency().clone());
+                self.node_to_index(rate_request.get_destination_exchange().clone());
             let destination_currency_index =
                 self.node_to_index(rate_request.get_destination_currency().clone());
 
@@ -496,13 +496,21 @@ mod tests {
 
     #[test]
     fn process() {
-        let text_input = "2017-11-01T09:42:23+00:00 E1 BTC USD 1000.0 0.0009
-2018-11-01T09:42:23+00:00 E1 ETH USD 100.0 0.01
-2018-11-01T09:42:23+00:00 E2 ETH USD 100.0 0.01
-2018-11-01T09:42:23+00:00 E2 BTC USD 1002.0 0.00092
-2018-11-01T09:42:23+00:00 E3 ETH BTC 100.0 0.01
-EXCHANGE_RATE_REQUEST E1 BTC E3 ETH
-EXCHANGE_RATE_REQUEST E1 BTC E3 USD"
+        let text_input = "2019-01-20T09:42:23+00:00 BitMEX BTC USD 3531.0 0.00026
+2019-01-20T09:42:23+00:00 CoinBene BTC USD 3584.69 0.00025
+2019-01-20T09:42:23+00:00 EXX BTC USD 3577.07 0.000255
+2019-01-20T09:42:23+00:00 Bitfinex BTC USD 3580.60 0.000252
+2019-01-20T09:42:23+00:00 OEX BTC USD 3571.26 0.00026
+
+2019-01-20T09:42:23+00:00 Bibox ETH USD 117.36 0.0075
+2019-01-20T09:42:23+00:00 Bitfinex ETH USD 117.51 0.0074
+2019-01-20T09:42:23+00:00 EXX ETH USD 110.76 0.0076
+2019-01-20T09:42:23+00:00 CoinBene ETH USD 117.44 0.0072
+2019-01-20T09:42:23+00:00 ZBG ETH USD 117.45 0.0071
+
+EXCHANGE_RATE_REQUEST BitMEX BTC EXX BTC"
+            //EXCHANGE_RATE_REQUEST BitMEX BTC EXX ETH
+            //EXCHANGE_RATE_REQUEST CoinBene ETH BiBox USD"
             .as_bytes();
 
         // Test creation of Request from multiline text.
@@ -513,6 +521,11 @@ EXCHANGE_RATE_REQUEST E1 BTC E3 USD"
 
         // println!("{}", response.get_best_rate_path());
 
-        // assert_eq!(response.get_best_rate_path().first().unwrap().get_rate(), &1.2);
+        // assert_eq!(response.get_best_rate_path().len(), 3);
+        assert_eq!(
+            response.get_best_rate_path().first().unwrap().get_rate(),
+            &1.0
+        );
+        // &117.51
     }
 }

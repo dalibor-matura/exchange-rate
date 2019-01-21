@@ -222,13 +222,6 @@ where
             backward_factor.unwrap(),
         ))
     }
-
-    //    pub fn fill_graph(&self, graph: &mut Graph<(&'a str, &'a str), T>) {
-    //        let a = (&self.exchange[..], &self.source_currency[..]);
-    //        let b = (&self.exchange[..], &self.destination_currency[..]);
-    //
-    //        graph.add_edge(a, b, self.forward_factor);
-    //    }
 }
 
 #[cfg(test)]
