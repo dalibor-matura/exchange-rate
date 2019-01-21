@@ -74,6 +74,12 @@ where
         while next != end {
             nodes.push(next);
 
+            // Loop detection.
+            if nodes.len() > self.path.node_count() {
+                // Break out of the loop otherwise it would loop here infinitely.
+                break;
+            }
+
             // Find out a possible next step.
             let new_next = self.next.edge_weight(next, end);
 
