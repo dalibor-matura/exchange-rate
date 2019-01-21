@@ -69,6 +69,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
         E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,
     {
+        print!("{}", response.get_output());
     }
 }
 

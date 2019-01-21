@@ -56,6 +56,13 @@ where
     /// BEST_RATES_END
     ///
     /// ## Example
+    ///
+    /// BEST_RATES_BEGIN <a> <b> <g> <h> <10.2>
+    /// <a, b>
+    /// <c, d>
+    /// <e, f>
+    /// <g, h>
+    /// BEST_RATES_END
     pub fn get_output(&self) -> String {
         let path = self.get_path();
 

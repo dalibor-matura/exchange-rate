@@ -15,7 +15,7 @@ use std::str::FromStr;
 pub struct Response<N, E>
 where
     N: Display + Eq + FromStr + Hash + Ord + fmt::Debug,
-    E: Clone + Copy + Num + PartialOrd,
+    E: Clone + Display + Copy + Num + PartialOrd,
 {
     best_rate_paths: Vec<BestRatePath<N, E>>,
 }
@@ -23,7 +23,7 @@ where
 impl<N, E> Response<N, E>
 where
     N: Display + Eq + FromStr + Hash + Ord + fmt::Debug,
-    E: Clone + Copy + Num + PartialOrd,
+    E: Clone + Display + Copy + Num + PartialOrd,
 {
     pub fn new() -> Self {
         Self {
@@ -37,6 +37,19 @@ where
 
     pub fn get_best_rate_path(&self) -> &Vec<BestRatePath<N, E>> {
         &self.best_rate_paths
+    }
+
+    /// Get printable output representing the Response.
+    ///
+    /// Concatenate all outputs of `BestRatePath`s.
+    pub fn get_output(&self) -> String {
+        let mut output = String::new();
+
+        for best_rate_path in self.best_rate_paths.iter() {
+            output.push_str(&best_rate_path.get_output());
+        }
+
+        output
     }
 }
 
