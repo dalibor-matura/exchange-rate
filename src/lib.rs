@@ -15,6 +15,7 @@ use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
 use std::fmt::Debug;
+use std::fmt::Display;
 use std::hash::Hash;
 use std::io::{self, BufRead};
 use std::str::FromStr;
@@ -31,9 +32,9 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     pub fn run<N, E>(&mut self)
     where
-        N: Clone + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
         <N as FromStr>::Err: Debug,
-        E: Clone + Copy + Num + PartialOrd + FromStr + Debug,
+        E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,
     {
         let request = self.form_request::<N, E>();
@@ -43,29 +44,29 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     fn form_request<N, E>(&mut self) -> Request<N, E>
     where
-        N: Clone + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
         <N as FromStr>::Err: Debug,
-        E: Clone + Copy + Num + PartialOrd + FromStr,
+        E: Clone + Display + Copy + Num + PartialOrd + FromStr,
         <E as FromStr>::Err: Debug,
     {
         Request::<N, E>::read_from(&mut self.input)
     }
 
-    fn process_request<N, E>(request: Request<N, E>) -> Response<(N, N), E>
+    fn process_request<N, E>(request: Request<N, E>) -> Response<N, E>
     where
-        N: Clone + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
         <N as FromStr>::Err: Debug,
-        E: Clone + Copy + Num + PartialOrd + FromStr + Debug,
+        E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,
     {
         Algorithm::<N, E, u32>::process(&request)
     }
 
-    fn write_response<N, E>(response: Response<(N, N), E>)
+    fn write_response<N, E>(response: Response<N, E>)
     where
-        N: Clone + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
         <N as FromStr>::Err: Debug,
-        E: Clone + Copy + Num + PartialOrd + FromStr + Debug,
+        E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,
     {
     }

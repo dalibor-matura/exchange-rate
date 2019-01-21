@@ -7,12 +7,14 @@ use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
 use std::fmt;
+use std::fmt::Display;
 use std::hash::Hash;
+use std::str::FromStr;
 
 /// Exchange Rate Path Response structure.
 pub struct Response<N, E>
 where
-    N: Eq + Hash + Ord + fmt::Debug,
+    N: Display + Eq + FromStr + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     best_rate_paths: Vec<BestRatePath<N, E>>,
@@ -20,7 +22,7 @@ where
 
 impl<N, E> Response<N, E>
 where
-    N: Eq + Hash + Ord + fmt::Debug,
+    N: Display + Eq + FromStr + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     pub fn new() -> Self {

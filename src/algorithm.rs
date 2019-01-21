@@ -13,6 +13,7 @@ use std::clone::Clone;
 use std::cmp::Ordering::{Greater, Less};
 use std::cmp::{Eq, Ord, PartialOrd};
 use std::fmt::Debug;
+use std::fmt::Display;
 use std::hash::Hash;
 use std::ops::AddAssign;
 use std::str::FromStr;
@@ -26,9 +27,9 @@ use std::str::FromStr;
 /// - Edge weight `E`.
 pub struct Algorithm<N, E, I>
 where
-    N: Clone + Ord + FromStr + Eq + Hash,
+    N: Clone + Display + Ord + FromStr + Eq + Hash,
     <N as FromStr>::Err: Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr,
+    E: Clone + Display + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,
     I: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash,
     <I as FromStr>::Err: Debug,
@@ -42,9 +43,9 @@ where
 
 impl<N, E, I> Algorithm<N, E, I>
 where
-    N: Clone + Ord + FromStr + Eq + Hash + Debug,
+    N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
     <N as FromStr>::Err: Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr + Debug,
+    E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
     <E as FromStr>::Err: Debug,
     I: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash + Debug,
     <I as FromStr>::Err: Debug,
@@ -65,7 +66,7 @@ where
         }
     }
 
-    pub fn process(request: &Request<N, E>) -> Response<(N, N), E> {
+    pub fn process(request: &Request<N, E>) -> Response<N, E> {
         let mut alg = Algorithm::<N, E, I>::new();
         alg.construct_graph(request);
         let result = alg.run_customized_floyd_warshall();
@@ -186,7 +187,7 @@ where
         &mut self,
         request: &Request<N, E>,
         fw_result: &FloydWarshallResult<(I, I), E>,
-    ) -> Response<(N, N), E> {
+    ) -> Response<N, E> {
         let mut response = Response::new();
 
         // Process all `PriceUpdates`.
@@ -222,7 +223,7 @@ where
 
             match rate_raw {
                 Some(&rate) => {
-                    let best_rate_path = BestRatePath::<(N, N), E>::new(rate, path);
+                    let best_rate_path = BestRatePath::<N, E>::new(rate, path);
                     response.add_best_rate_path(best_rate_path);
                 }
                 None => {
