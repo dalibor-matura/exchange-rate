@@ -2,5 +2,5 @@ use exchange_rate_path::ExchangeRatePath;
 use std::io;
 
 fn main() {
-    ExchangeRatePath::new(io::stdin().lock()).run::<f32>();
+    ExchangeRatePath::new(io::stdin().lock()).run::<String, f32>();
 }

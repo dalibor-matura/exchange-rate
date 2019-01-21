@@ -18,59 +18,69 @@ use std::ops::AddAssign;
 use std::str::FromStr;
 
 /// Exchange Rate Path (ERP) Algorithm structure.
-pub struct Algorithm<N, E>
+///
+/// # `Algorithm` is parameterized over:
+///
+/// - Index `I` for indexing of nodes `N`.
+/// - Node data `N`.
+/// - Edge weight `E`.
+pub struct Algorithm<N, E, I>
 where
-    N: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash,
+    N: Clone + Ord + FromStr + Eq + Hash,
     <N as FromStr>::Err: Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,
+    I: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash,
+    <I as FromStr>::Err: Debug,
 {
-    graph: Graph<(N, N), E>,
-    string_to_index: HashMap<String, N>,
-    index_to_string: HashMap<N, String>,
-    counter: N,
-    currency_exchanges: HashMap<N, IndexSet<N>>,
+    graph: Graph<(I, I), E>,
+    node_to_index: HashMap<N, I>,
+    index_to_node: HashMap<I, N>,
+    counter: I,
+    currency_exchanges: HashMap<I, IndexSet<I>>,
 }
 
-impl<N, E> Algorithm<N, E>
+impl<N, E, I> Algorithm<N, E, I>
 where
-    N: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash + Debug,
+    N: Clone + Ord + FromStr + Eq + Hash + Debug,
     <N as FromStr>::Err: Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr + Debug,
     <E as FromStr>::Err: Debug,
+    I: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash + Debug,
+    <I as FromStr>::Err: Debug,
 {
     fn new() -> Self {
-        let graph = Graph::<(N, N), E>::new();
-        let string_to_index = HashMap::<String, N>::new();
-        let index_to_string = HashMap::<N, String>::new();
-        let counter = N::zero();
-        let currency_exchanges = HashMap::<N, IndexSet<N>>::new();
+        let graph = Graph::<(I, I), E>::new();
+        let node_to_index = HashMap::<N, I>::new();
+        let index_to_node = HashMap::<I, N>::new();
+        let counter = I::zero();
+        let currency_exchanges = HashMap::<I, IndexSet<I>>::new();
 
         Self {
             graph,
-            string_to_index,
-            index_to_string,
+            node_to_index,
+            index_to_node,
             counter,
             currency_exchanges,
         }
     }
 
-    pub fn process(request: &Request<E>) -> Response<(N, N), E> {
-        let mut alg = Algorithm::<N, E>::new();
+    pub fn process(request: &Request<N, E>) -> Response<(N, N), E> {
+        let mut alg = Algorithm::<N, E, I>::new();
         alg.construct_graph(request);
         let result = alg.run_customized_floyd_warshall();
         alg.form_response(request, &result)
     }
 
-    fn construct_graph(&mut self, request: &Request<E>) {
+    fn construct_graph(&mut self, request: &Request<N, E>) {
         // Process all `PriceUpdates`.
         for (_, price_update) in request.get_price_updates().iter() {
             // Prepare indexes.
-            let exchange_index = self.string_to_index(price_update.get_exchange().clone());
+            let exchange_index = self.node_to_index(price_update.get_exchange().clone());
             let source_currency_index =
-                self.string_to_index(price_update.get_source_currency().clone());
+                self.node_to_index(price_update.get_source_currency().clone());
             let destination_currency_index =
-                self.string_to_index(price_update.get_destination_currency().clone());
+                self.node_to_index(price_update.get_destination_currency().clone());
 
             // Get star and end node.
             let a = (exchange_index, source_currency_index);
@@ -93,7 +103,7 @@ where
         self.add_currency_exchanges_edges();
     }
 
-    fn collect_currency_exchanges(&mut self, currency: N, exchange: N) {
+    fn collect_currency_exchanges(&mut self, currency: I, exchange: I) {
         match self.currency_exchanges.entry(currency) {
             // Return the index for existing entry.
             Entry::Occupied(o) => {
@@ -103,7 +113,7 @@ where
             // Insert a new `IndexSet`.
             Entry::Vacant(v) => {
                 // Prepare a new `IndexSet` with the provided exchange.
-                let mut exchanges = IndexSet::<N>::with_capacity(1);
+                let mut exchanges = IndexSet::<I>::with_capacity(1);
                 exchanges.insert(exchange);
 
                 // Insert the new `IndexSet`.
@@ -134,35 +144,35 @@ where
         }
     }
 
-    /// Get index of the provided `String`.
+    /// Get index of the provided node `N`.
     ///
-    /// If the `String` is not yet indexed, do so and return the new index.
-    fn string_to_index(&mut self, s: String) -> N {
-        match self.string_to_index.entry(s.clone()) {
+    /// If the `N` is not yet indexed, do so and return the new index.
+    fn node_to_index(&mut self, s: N) -> I {
+        match self.node_to_index.entry(s.clone()) {
             // Return the index for existing entry.
             Entry::Occupied(o) => *o.get(),
             // Insert with a proper index based on counter.
             Entry::Vacant(v) => {
                 // Increase the counter here because new index was requested.
-                self.counter += N::one();
+                self.counter += I::one();
                 // Use counter as a new index.
                 v.insert(self.counter);
                 // Update the reverse `HashMap`.
-                self.index_to_string.insert(self.counter, s);
+                self.index_to_node.insert(self.counter, s);
                 // Return the index.
                 self.counter
             }
         }
     }
 
-    /// Get `String` for the provided index.
+    /// Get node `N` for the provided index.
     ///
-    /// Return `Option<String>` as it is possible that there's no `String` with the index.
-    fn index_to_string(&self, i: &N) -> Option<&String> {
-        self.index_to_string.get(i)
+    /// Return `Option<n>` as it is possible that there's no `N` with the index.
+    fn index_to_node(&self, i: &I) -> Option<&N> {
+        self.index_to_node.get(i)
     }
 
-    fn run_customized_floyd_warshall(&mut self) -> FloydWarshallResult<(N, N), E> {
+    fn run_customized_floyd_warshall(&mut self) -> FloydWarshallResult<(I, I), E> {
         let mul = Box::new(|x: E, y: E| x + y);
         let sharp_greater = Box::new(|x: E, y: E| x.partial_cmp(&y).unwrap_or(Less) == Greater);
 
@@ -174,8 +184,8 @@ where
 
     fn form_response(
         &mut self,
-        request: &Request<E>,
-        fw_result: &FloydWarshallResult<(N, N), E>,
+        request: &Request<N, E>,
+        fw_result: &FloydWarshallResult<(I, I), E>,
     ) -> Response<(N, N), E> {
         let mut response = Response::new();
 
@@ -183,13 +193,13 @@ where
         for (_, rate_request) in request.get_rate_requests().iter() {
             // Prepare indexes.
             let source_exchange_index =
-                self.string_to_index(rate_request.get_source_currency().clone());
+                self.node_to_index(rate_request.get_source_currency().clone());
             let source_currency_index =
-                self.string_to_index(rate_request.get_source_currency().clone());
+                self.node_to_index(rate_request.get_source_currency().clone());
             let destination_exchange_index =
-                self.string_to_index(rate_request.get_destination_currency().clone());
+                self.node_to_index(rate_request.get_destination_currency().clone());
             let destination_currency_index =
-                self.string_to_index(rate_request.get_destination_currency().clone());
+                self.node_to_index(rate_request.get_destination_currency().clone());
 
             // Get star and end node.
             let a = (source_exchange_index, source_currency_index);
@@ -198,6 +208,17 @@ where
             // Prepare `BestRatePath`.
             let rate_raw = fw_result.get_path_rate(a, b);
             let path = fw_result.collect_path_nodes(a, b);
+
+            // Re-map path from indexes `I` to nodes `N`.
+            let path = path
+                .into_iter()
+                .map(|(a, b)| {
+                    (
+                        self.index_to_node(&a).unwrap().clone(),
+                        self.index_to_node(&b).unwrap().clone(),
+                    )
+                })
+                .collect();
 
             match rate_raw {
                 Some(&rate) => {
@@ -224,12 +245,12 @@ mod tests {
 
     #[test]
     fn new() {
-        let _alg = Algorithm::<u32, f32>::new();
+        let _alg = Algorithm::<String, f32, u32>::new();
     }
 
     #[test]
     fn collect_currency_exchanges() {
-        let mut alg = Algorithm::<u32, f32>::new();
+        let mut alg = Algorithm::<String, f32, u32>::new();
 
         alg.collect_currency_exchanges(1, 2);
         alg.collect_currency_exchanges(1, 3);
@@ -257,7 +278,7 @@ mod tests {
 
     #[test]
     fn add_currency_exchanges_edges() {
-        let mut alg = Algorithm::<u32, f32>::new();
+        let mut alg = Algorithm::<String, f32, u32>::new();
 
         alg.collect_currency_exchanges(1, 2);
         alg.collect_currency_exchanges(1, 3);
@@ -282,7 +303,7 @@ mod tests {
 
     #[test]
     fn construct_graph() {
-        let mut alg = Algorithm::<u32, f32>::new();
+        let mut alg = Algorithm::<String, f32, u32>::new();
 
         let text_input = "2017-11-01T09:42:23+00:00 E1 BTC USD 1000.0 0.0009
 2018-11-01T09:42:23+00:00 E1 ETH USD 100.0 0.001
@@ -292,7 +313,7 @@ mod tests {
 
         // Test creation of Request from multiline text.
         let mut input = BufReader::new(text_input);
-        let request = Request::<f32>::read_from(&mut input);
+        let request = Request::<String, f32>::read_from(&mut input);
 
         alg.construct_graph(&request);
 
@@ -307,12 +328,12 @@ mod tests {
         let usd = String::from("USD");
 
         //
-        let e1_index = alg.string_to_index(e1.clone());
-        let e2_index = alg.string_to_index(e2.clone());
-        let e3_index = alg.string_to_index(e3.clone());
-        let btc_index = alg.string_to_index(btc.clone());
-        let eth_index = alg.string_to_index(eth.clone());
-        let usd_index = alg.string_to_index(usd.clone());
+        let e1_index = alg.node_to_index(e1.clone());
+        let e2_index = alg.node_to_index(e2.clone());
+        let e3_index = alg.node_to_index(e3.clone());
+        let btc_index = alg.node_to_index(btc.clone());
+        let eth_index = alg.node_to_index(eth.clone());
+        let usd_index = alg.node_to_index(usd.clone());
 
         // Test ETH edges existence.
         assert_eq!(
@@ -406,10 +427,8 @@ EXCHANGE_RATE_REQUEST E1 BTC E3 USD"
 
         // Test creation of Request from multiline text.
         let mut input = BufReader::new(text_input);
-        let request = Request::<f32>::read_from(&mut input);
+        let request = Request::<String, f32>::read_from(&mut input);
 
-        let response = Algorithm::<u32, f32>::process(&request);
-
-
+        let response = Algorithm::<String, f32, u32>::process(&request);
     }
 }

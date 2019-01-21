@@ -1,13 +1,14 @@
 //! Exchange Rate Path Request.
 
-use self::exchange_rate_request::{ExchangeRateRequest, ExchangeRateRequestIndex};
-use self::price_update::{PriceUpdate, PriceUpdateIndex};
+use self::exchange_rate_request::ExchangeRateRequest;
+use self::price_update::PriceUpdate;
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::hash::Hash;
 use std::io::BufRead;
 use std::str::FromStr;
 
@@ -15,17 +16,21 @@ mod exchange_rate_request;
 mod price_update;
 
 /// Exchange Rate Path Request structure.
-pub struct Request<E>
+pub struct Request<N, E>
 where
+    N: Clone + Ord + FromStr + Eq + Hash,
+    <N as FromStr>::Err: Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,
 {
-    price_updates: HashMap<PriceUpdateIndex, PriceUpdate<E>>,
-    rate_requests: HashMap<ExchangeRateRequestIndex, ExchangeRateRequest>,
+    price_updates: HashMap<(N, N, N), PriceUpdate<N, E>>,
+    rate_requests: HashMap<(N, N, N, N), ExchangeRateRequest<N>>,
 }
 
-impl<E: Clone + Copy + Num + PartialOrd + FromStr> Request<E>
+impl<N, E> Request<N, E>
 where
+    N: Clone + Ord + FromStr + Eq + Hash,
+    <N as FromStr>::Err: Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,
 {
@@ -61,17 +66,19 @@ where
             // Match the line type based on the first line item.
             // The line item is used as uppercase to be more robust.
             match first_item.to_uppercase().as_ref() {
-                ExchangeRateRequest::LINE_TYPE => match ExchangeRateRequest::parse_line(line) {
-                    Ok(rate_request) => self.add_rate_request(rate_request),
-                    // The errors handling can be done better. Probably using logging mechanism
-                    // or just outputting it to the `std::io::stderr`, letting the process continue
-                    // and thus being more robust.
-                    Err(errors) => panic!(
-                        "Errors occurred while processing input lines, errors: {:?}!",
-                        errors
-                    ),
-                },
-                _ => match PriceUpdate::<E>::parse_line(line) {
+                ExchangeRateRequest::<N>::LINE_TYPE => {
+                    match ExchangeRateRequest::<N>::parse_line(line) {
+                        Ok(rate_request) => self.add_rate_request(rate_request),
+                        // The errors handling can be done better. Probably using logging mechanism
+                        // or just outputting it to the `std::io::stderr`, letting the process continue
+                        // and thus being more robust.
+                        Err(errors) => panic!(
+                            "Errors occurred while processing input lines, errors: {:?}!",
+                            errors
+                        ),
+                    }
+                }
+                _ => match PriceUpdate::<N, E>::parse_line(line) {
                     Ok(price_update) => self.add_price_update(price_update),
                     // The errors handling can be done better. Probably using logging mechanism
                     // or just outputting it to the `std::io::stderr`, letting the process continue
@@ -85,13 +92,13 @@ where
         }
     }
 
-    fn add_rate_request(&mut self, rate_request: ExchangeRateRequest) {
+    fn add_rate_request(&mut self, rate_request: ExchangeRateRequest<N>) {
         // Use the latest.
         self.rate_requests
             .insert(rate_request.get_index(), rate_request);
     }
 
-    fn add_price_update(&mut self, price_update: PriceUpdate<E>) {
+    fn add_price_update(&mut self, price_update: PriceUpdate<N, E>) {
         let entry = self.price_updates.entry(price_update.get_index());
 
         match entry {
@@ -113,11 +120,11 @@ where
         }
     }
 
-    pub fn get_price_updates(&self) -> &HashMap<PriceUpdateIndex, PriceUpdate<E>> {
+    pub fn get_price_updates(&self) -> &HashMap<(N, N, N), PriceUpdate<N, E>> {
         &self.price_updates
     }
 
-    pub fn get_rate_requests(&self) -> &HashMap<ExchangeRateRequestIndex, ExchangeRateRequest> {
+    pub fn get_rate_requests(&self) -> &HashMap<(N, N, N, N), ExchangeRateRequest<N>> {
         &self.rate_requests
     }
 }
@@ -129,7 +136,7 @@ mod tests {
 
     #[test]
     fn process_line() {
-        let mut request = Request::<f32>::new();
+        let mut request = Request::<String, f32>::new();
 
         // Test adding ProcessUpdate line.
         let price_update_line =
@@ -159,7 +166,7 @@ EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
 
         // Test creation of Request from multiline text.
         let mut input = BufReader::new(text_input);
-        let request = Request::<f32>::read_from(&mut input);
+        let request = Request::<String, f32>::read_from(&mut input);
 
         // Test counts of PriceUpdate items and ExchangeRateRequest items.
         assert_eq!(request.price_updates.len(), 2);
@@ -183,7 +190,7 @@ EXCHANGE_RATE_REQUEST GDAX BTC KRAKEN USD"
 
         // Test creation of Request from multiline text containing empty or whitespace-only lines.
         let mut input = BufReader::new(text_input);
-        let request = Request::<f32>::read_from(&mut input);
+        let request = Request::<String, f32>::read_from(&mut input);
 
         // Test counts of PriceUpdate items and ExchangeRateRequest items.
         assert_eq!(request.price_updates.len(), 2);

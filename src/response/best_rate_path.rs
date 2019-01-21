@@ -8,7 +8,7 @@ use std::hash::Hash;
 
 pub struct BestRatePath<N, E>
 where
-    N: Eq + Copy + Hash + Ord + fmt::Debug,
+    N: Eq + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     rate: E,
@@ -17,7 +17,7 @@ where
 
 impl<N, E> BestRatePath<N, E>
 where
-    N: Eq + Copy + Hash + Ord + fmt::Debug,
+    N: Eq + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     pub fn new(rate: E, path: Vec<N>) -> Self {

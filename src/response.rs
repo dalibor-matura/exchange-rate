@@ -12,7 +12,7 @@ use std::hash::Hash;
 /// Exchange Rate Path Response structure.
 pub struct Response<N, E>
 where
-    N: Eq + Copy + Hash + Ord + fmt::Debug,
+    N: Eq + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     best_rate_paths: Vec<BestRatePath<N, E>>,
@@ -20,7 +20,7 @@ where
 
 impl<N, E> Response<N, E>
 where
-    N: Eq + Copy + Hash + Ord + fmt::Debug,
+    N: Eq + Hash + Ord + fmt::Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     pub fn new() -> Self {

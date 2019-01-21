@@ -4,6 +4,9 @@ use self::Items::*;
 use chrono::{DateTime, FixedOffset};
 use std::collections::HashMap;
 use std::fmt;
+use std::fmt::Debug;
+use std::hash::Hash;
+use std::str::FromStr;
 
 #[derive(Eq, PartialEq, Hash)]
 pub enum Items {
@@ -32,31 +35,31 @@ impl fmt::Display for Items {
     }
 }
 
-/// Index of `PriceUpdate` formed from its three keys:
-/// - exchange
-/// - source_currency
-/// - destination_currency
-///
-/// The rest of `PriceUpdate` fields are just values (not indexing anything).
-pub type ExchangeRateRequestIndex = (String, String, String, String);
-
-pub struct ExchangeRateRequest {
-    source_exchange: String,
-    source_currency: String,
-    destination_exchange: String,
-    destination_currency: String,
+pub struct ExchangeRateRequest<N>
+where
+    N: Clone + Ord + FromStr + Eq + Hash,
+    <N as FromStr>::Err: Debug,
+{
+    source_exchange: N,
+    source_currency: N,
+    destination_exchange: N,
+    destination_currency: N,
 }
 
-impl ExchangeRateRequest {
+impl<N> ExchangeRateRequest<N>
+where
+    N: Clone + Ord + FromStr + Eq + Hash,
+    <N as FromStr>::Err: Debug,
+{
     // The type of a line that can be parsed into the `ExchangeRateRequest` structure.
     pub const LINE_TYPE: &'static str = "EXCHANGE_RATE_REQUEST";
 
     /// Create a new instance of `ExchangeRateRequest` structure.
     pub fn new(
-        source_exchange: String,
-        source_currency: String,
-        destination_exchange: String,
-        destination_currency: String,
+        source_exchange: N,
+        source_currency: N,
+        destination_exchange: N,
+        destination_currency: N,
     ) -> Self {
         Self {
             source_exchange,
@@ -67,7 +70,7 @@ impl ExchangeRateRequest {
     }
 
     /// Get Index identifying current instance by its primary keys.
-    pub fn get_index(&self) -> ExchangeRateRequestIndex {
+    pub fn get_index(&self) -> (N, N, N, N) {
         (
             self.source_exchange.clone(),
             self.source_currency.clone(),
@@ -76,19 +79,19 @@ impl ExchangeRateRequest {
         )
     }
 
-    pub fn get_source_exchange(&self) -> &String {
+    pub fn get_source_exchange(&self) -> &N {
         &self.source_exchange
     }
 
-    pub fn get_source_currency(&self) -> &String {
+    pub fn get_source_currency(&self) -> &N {
         &self.source_currency
     }
 
-    pub fn get_destination_exchange(&self) -> &String {
+    pub fn get_destination_exchange(&self) -> &N {
         &self.destination_exchange
     }
 
-    pub fn get_destination_currency(&self) -> &String {
+    pub fn get_destination_currency(&self) -> &N {
         &self.destination_currency
     }
 
@@ -101,7 +104,7 @@ impl ExchangeRateRequest {
     /// ## Example
     ///
     /// EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH
-    pub fn parse_line(line: &String) -> Result<ExchangeRateRequest, Vec<String>> {
+    pub fn parse_line(line: &String) -> Result<ExchangeRateRequest<N>, Vec<String>> {
         let mut iter = line.split_whitespace();
         let mut values = HashMap::new();
         let mut errors: Vec<String> = Vec::new();
@@ -141,17 +144,49 @@ impl ExchangeRateRequest {
             return Err(errors);
         }
 
-        // Get `String` values, making it all uppercase to be more robust.
-        let source_exchange = values[&SourceExchange].to_uppercase();
-        let source_currency = values[&SourceCurrency].to_uppercase();
-        let destination_exchange = values[&DestinationExchange].to_uppercase();
-        let destination_currency = values[&DestinationCurrency].to_uppercase();
+        // Parse values, also making it all uppercase to be more robust.
+        let source_exchange = values[&SourceExchange].to_uppercase().parse::<N>();
+        if source_exchange.is_err() {
+            errors.push(format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                &SourceExchange
+            ));
+        }
+
+        let source_currency = values[&SourceCurrency].to_uppercase().parse::<N>();
+        if source_currency.is_err() {
+            errors.push(format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                &SourceCurrency
+            ));
+        }
+
+        let destination_exchange = values[&DestinationExchange].to_uppercase().parse::<N>();
+        if destination_exchange.is_err() {
+            errors.push(format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                &DestinationExchange
+            ));
+        }
+
+        let destination_currency = values[&DestinationCurrency].to_uppercase().parse::<N>();
+        if destination_currency.is_err() {
+            errors.push(format!(
+                "The line item <{}> can not be parsed (wrong format)!",
+                &DestinationCurrency
+            ));
+        }
+
+        // Continue only if all values were parsed successfully (no errors are present).
+        if !errors.is_empty() {
+            return Err(errors);
+        }
 
         Ok(Self::new(
-            source_exchange.to_string(),
-            source_currency.to_string(),
-            destination_exchange.to_string(),
-            destination_currency.to_string(),
+            source_exchange.unwrap(),
+            source_currency.unwrap(),
+            destination_exchange.unwrap(),
+            destination_currency.unwrap(),
         ))
     }
 }
@@ -164,7 +199,7 @@ mod tests {
     #[test]
     fn parse_line() {
         let line = "EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH";
-        let rate_request = ExchangeRateRequest::parse_line(&line.to_string());
+        let rate_request = ExchangeRateRequest::<String>::parse_line(&line.to_string());
 
         // Test that the line was parsed properly.
         assert!(rate_request.is_ok());
@@ -182,7 +217,7 @@ mod tests {
     #[test]
     fn parse_line_with_wrong_line_type() {
         let line = "WRONG_LINE_TYPE KRAKEN BTC GDAX ETH";
-        let price_update = ExchangeRateRequest::parse_line(&line.to_string());
+        let price_update = ExchangeRateRequest::<String>::parse_line(&line.to_string());
 
         // Test that the line could not be parsed properly.
         assert!(price_update.is_err());
@@ -195,7 +230,7 @@ mod tests {
             errors.pop().unwrap(),
             format!(
                 "The line item type identifier at the beginning of the line {} is wrong!",
-                ExchangeRateRequest::LINE_TYPE
+                ExchangeRateRequest::<String>::LINE_TYPE
             )
         );
 
@@ -206,7 +241,7 @@ mod tests {
     #[test]
     fn parse_line_with_missing_values() {
         let line = "";
-        let price_update = ExchangeRateRequest::parse_line(&line.to_string());
+        let price_update = ExchangeRateRequest::<String>::parse_line(&line.to_string());
 
         // Test that the line could not be parsed properly.
         assert!(price_update.is_err());
