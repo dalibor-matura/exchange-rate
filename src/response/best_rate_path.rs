@@ -3,14 +3,13 @@
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
-use std::fmt;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::str::FromStr;
 
 pub struct BestRatePath<N, E>
 where
-    N: Display + Eq + Hash + Ord + FromStr + fmt::Debug,
+    N: Display + Eq + Hash + Ord + FromStr + Debug,
     E: Clone + Copy + Num + PartialOrd,
 {
     rate: E,
@@ -19,7 +18,7 @@ where
 
 impl<N, E> BestRatePath<N, E>
 where
-    N: Display + Eq + Hash + Ord + FromStr + fmt::Debug,
+    N: Display + Eq + Hash + Ord + FromStr + Debug,
     E: Clone + Display + Copy + Num + PartialOrd,
 {
     pub fn new(rate: E, path: Vec<(N, N)>) -> Self {
@@ -34,10 +33,12 @@ where
         &self.path
     }
 
+    #[allow(dead_code)]
     pub fn get_start_node(&self) -> Option<&(N, N)> {
         self.path.first()
     }
 
+    #[allow(dead_code)]
     pub fn get_end_node(&self) -> Option<&(N, N)> {
         self.path.last()
     }

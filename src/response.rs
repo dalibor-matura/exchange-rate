@@ -6,15 +6,14 @@ use self::best_rate_path::BestRatePath;
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
-use std::fmt;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::str::FromStr;
 
 /// Exchange Rate Path Response structure.
 pub struct Response<N, E>
 where
-    N: Display + Eq + FromStr + Hash + Ord + fmt::Debug,
+    N: Display + Eq + FromStr + Hash + Ord + Debug,
     E: Clone + Display + Copy + Num + PartialOrd,
 {
     best_rate_paths: Vec<BestRatePath<N, E>>,
@@ -22,7 +21,7 @@ where
 
 impl<N, E> Response<N, E>
 where
-    N: Display + Eq + FromStr + Hash + Ord + fmt::Debug,
+    N: Display + Eq + FromStr + Hash + Ord + Debug,
     E: Clone + Display + Copy + Num + PartialOrd,
 {
     pub fn new() -> Self {
@@ -35,6 +34,7 @@ where
         self.best_rate_paths.push(best_rate_path);
     }
 
+    #[allow(dead_code)]
     pub fn get_best_rate_path(&self) -> &Vec<BestRatePath<N, E>> {
         &self.best_rate_paths
     }

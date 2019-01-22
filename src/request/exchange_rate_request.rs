@@ -1,10 +1,8 @@
 //! Exchange Rate Request.
 
 use self::Items::*;
-use chrono::{DateTime, FixedOffset};
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::Debug;
 use std::hash::Hash;
 use std::str::FromStr;
 
@@ -38,7 +36,7 @@ impl fmt::Display for Items {
 pub struct ExchangeRateRequest<N>
 where
     N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: Debug,
+    <N as FromStr>::Err: fmt::Debug,
 {
     source_exchange: N,
     source_currency: N,
@@ -49,7 +47,7 @@ where
 impl<N> ExchangeRateRequest<N>
 where
     N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: Debug,
+    <N as FromStr>::Err: fmt::Debug,
 {
     // The type of a line that can be parsed into the `ExchangeRateRequest` structure.
     pub const LINE_TYPE: &'static str = "EXCHANGE_RATE_REQUEST";

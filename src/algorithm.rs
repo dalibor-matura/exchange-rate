@@ -12,8 +12,7 @@ use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::Ordering::{Greater, Less};
 use std::cmp::{Eq, Ord, PartialOrd};
-use std::fmt::Debug;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::ops::AddAssign;
 use std::str::FromStr;
@@ -241,7 +240,6 @@ where
 mod tests {
     use crate::algorithm::Algorithm;
     use crate::request::Request;
-    use crate::response::Response;
     use std::io::BufReader;
 
     #[test]
@@ -446,7 +444,8 @@ mod tests {
         let e1_index = alg.node_to_index(e1.clone());
         let e2_index = alg.node_to_index(e2.clone());
         let e3_index = alg.node_to_index(e3.clone());
-        let btc_index = alg.node_to_index(btc.clone());
+
+        let _btc_index = alg.node_to_index(btc.clone());
         let eth_index = alg.node_to_index(eth.clone());
         let usd_index = alg.node_to_index(usd.clone());
 

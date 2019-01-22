@@ -10,7 +10,6 @@ use std::clone::Clone;
 use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::Debug;
 use std::hash::Hash;
 use std::str::FromStr;
 
@@ -46,9 +45,9 @@ impl fmt::Display for Items {
 pub struct PriceUpdate<N, E>
 where
     N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: Debug,
+    <N as FromStr>::Err: fmt::Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
-    <E as FromStr>::Err: Debug,
+    <E as FromStr>::Err: fmt::Debug,
 {
     timestamp: DateTime<FixedOffset>,
     exchange: N,
@@ -61,9 +60,9 @@ where
 impl<N, E> PriceUpdate<N, E>
 where
     N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: Debug,
+    <N as FromStr>::Err: fmt::Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
-    <E as FromStr>::Err: Debug,
+    <E as FromStr>::Err: fmt::Debug,
 {
     /// Create a new instance of `PriceUpdate` structure.
     pub fn new(

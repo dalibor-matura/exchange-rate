@@ -14,10 +14,9 @@ use crate::response::Response;
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
-use std::fmt::Debug;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::io::{self, BufRead};
+use std::io::BufRead;
 use std::str::FromStr;
 
 pub struct ExchangeRatePath<I: BufRead> {
