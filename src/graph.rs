@@ -14,10 +14,12 @@
 //! - The security implication of using a third-party crate with no stable release yet are bad,
 //!   risk of malicious actions by outside influence.
 
+pub use self::node::NodeTrait;
+
 use crate::graph::edge::{
     AllEdges, CompactDirection, Direction, EdgeType, Edges, IntoWeightedEdge,
 };
-use crate::graph::node::{NodeTrait, Nodes};
+use crate::graph::node::Nodes;
 use crate::graph::traverse::{Neighbors, NeighborsDirected};
 use indexmap::IndexMap;
 use std::fmt;

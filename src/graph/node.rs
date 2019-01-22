@@ -2,14 +2,15 @@
 
 use crate::graph::edge::CompactDirection;
 use indexmap::map::Keys;
+use std::fmt::Debug;
 use std::hash::Hash;
 use std::iter::Cloned;
 
 /// A trait group for `Graph`'s node identifier.
-pub trait NodeTrait: Copy + Ord + Hash {}
+pub trait NodeTrait: Copy + Debug + Hash + Ord {}
 
 /// Implement the `NodeTrait` for all types satisfying bounds.
-impl<N> NodeTrait for N where N: Copy + Ord + Hash {}
+impl<N> NodeTrait for N where N: Copy + Debug + Hash + Ord {}
 
 /// Iterator over Nodes.
 pub struct Nodes<'a, N: 'a + NodeTrait> {

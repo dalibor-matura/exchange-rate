@@ -1,12 +1,8 @@
 //! Floyd-Warshall result.
 
+use super::FloydWarshallTrait;
 use crate::graph::Graph;
-use num_traits::Num;
-use std::clone::Clone;
-use std::cmp::PartialOrd;
-use std::cmp::{Eq, Ord};
-use std::fmt::Debug;
-use std::hash::Hash;
+use crate::graph::NodeTrait;
 
 /// Floyd-Warshall algorithm Result structure.
 ///
@@ -16,8 +12,8 @@ use std::hash::Hash;
 /// - Number type `E` giving a weight to edges.
 pub struct FloydWarshallResult<N, E>
 where
-    N: Eq + Copy + Hash + Ord + Debug,
-    E: Clone + Copy + Num + PartialOrd,
+    N: NodeTrait,
+    E: FloydWarshallTrait,
 {
     pub path: Graph<N, E>,
     pub next: Graph<N, N>,
@@ -25,8 +21,8 @@ where
 
 impl<N, E> FloydWarshallResult<N, E>
 where
-    N: Eq + Copy + Hash + Ord + Debug,
-    E: Clone + Copy + Num + PartialOrd,
+    N: NodeTrait,
+    E: FloydWarshallTrait,
 {
     /// Create a new instance of FloydWarshallResult structure.
     pub(super) fn new(path: Graph<N, E>, next: Graph<N, N>) -> Self {

@@ -1,25 +1,29 @@
 //! Floyd-Warshall algorithm.
 
 use self::result::FloydWarshallResult;
-use crate::graph::Graph;
+use crate::graph::{Graph, NodeTrait};
 use num_traits::Num;
 use std::clone::Clone;
+use std::cmp::Ord;
 use std::cmp::Ordering::{Greater, Less};
 use std::cmp::PartialOrd;
-use std::cmp::{Eq, Ord};
-use std::fmt::Debug;
-use std::hash::Hash;
 
 pub mod result;
+
+/// A trait group for `FloydWarshall`'s weighted edges.
+pub trait FloydWarshallTrait: Copy + Num + PartialOrd {}
+
+/// Implement the `FloydWarshallTrait` for all types satisfying bounds.
+impl<F> FloydWarshallTrait for F where F: Copy + Num + PartialOrd {}
 
 /// Floyd-Warshall algorithm structure.
 ///
 /// # `FloydWarshall` algorithm is parameterized over:
 ///
-/// - Number type `E` giving a weight to edges.
-pub struct FloydWarshall<E: Clone + Copy + Num + PartialOrd> {
+/// - Number type `F` giving a weights to edges.
+pub struct FloydWarshall<F: FloydWarshallTrait> {
     /// Operator to be used for weighted edges.
-    op: Box<Fn(E, E) -> E>,
+    op: Box<Fn(F, F) -> F>,
     /// Comparison to be used for weighted paths to determine if a newly tested path through `k`
     /// should be added or not.
     ///
@@ -39,12 +43,12 @@ pub struct FloydWarshall<E: Clone + Copy + Num + PartialOrd> {
     ///   // Use the new weight and path through `k`.
     /// }
     /// ```
-    cmp: Box<Fn(E, E) -> bool>,
+    cmp: Box<Fn(F, F) -> bool>,
     /// Discard loops (e.g. edges starting and ending in the same node) from calculation.
     discard_loops: bool,
 }
 
-impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
+impl<F: FloydWarshallTrait> FloydWarshall<F> {
     /// Create a new instance of FloydWarshall structure with default settings.
     ///
     /// # Examples
@@ -56,8 +60,8 @@ impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     /// ```
     pub fn new() -> Self {
         // Initialize defaults.
-        let add = Box::new(|x: E, y: E| x + y);
-        let sharp_less = Box::new(|x: E, y: E| x.partial_cmp(&y).unwrap_or(Greater) == Less);
+        let add = Box::new(|x: F, y: F| x + y);
+        let sharp_less = Box::new(|x: F, y: F| x.partial_cmp(&y).unwrap_or(Greater) == Less);
 
         Self {
             op: add,
@@ -83,7 +87,7 @@ impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     ///
     /// let alg: FloydWarshall<f32> = FloydWarshall::new_customized(mul, sharp_greater);
     /// ```
-    pub fn new_customized(op: Box<Fn(E, E) -> E>, cmp: Box<Fn(E, E) -> bool>) -> Self {
+    pub fn new_customized(op: Box<Fn(F, F) -> F>, cmp: Box<Fn(F, F) -> bool>) -> Self {
         Self::new_fully_customized(op, cmp, true)
     }
 
@@ -107,8 +111,8 @@ impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     ///
     /// let alg: FloydWarshall<f32> = FloydWarshall::new_customized(mul, sharp_greater);
     pub fn new_fully_customized(
-        op: Box<Fn(E, E) -> E>,
-        cmp: Box<Fn(E, E) -> bool>,
+        op: Box<Fn(F, F) -> F>,
+        cmp: Box<Fn(F, F) -> bool>,
         discard_loops: bool,
     ) -> Self {
         Self {
@@ -128,11 +132,11 @@ impl<E: Clone + Copy + Num + PartialOrd> FloydWarshall<E> {
     ///
     /// - Node index / label `N`.
     /// - Number type `E` giving a weight to edges.
-    pub fn find_paths<N>(&self, graph: &Graph<N, E>) -> FloydWarshallResult<N, E>
+    pub fn find_paths<N>(&self, graph: &Graph<N, F>) -> FloydWarshallResult<N, F>
     where
-        N: Eq + Copy + Hash + Ord + Debug,
+        N: NodeTrait,
     {
-        let mut path: Graph<N, E> = graph.clone();
+        let mut path: Graph<N, F> = graph.clone();
         let mut next: Graph<N, N> = Graph::with_capacity(graph.node_count(), graph.edge_count());
 
         // Initialize next steps of each edge existing in `graph` with its end node.
