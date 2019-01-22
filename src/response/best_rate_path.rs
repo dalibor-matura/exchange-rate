@@ -1,16 +1,12 @@
 //! Best Rate Path.
 
-use num_traits::Num;
-use std::clone::Clone;
-use std::cmp::PartialOrd;
+use crate::floyd_warshall::FloydWarshallTrait;
 use std::fmt::{Debug, Display};
-use std::hash::Hash;
-use std::str::FromStr;
 
 pub struct BestRatePath<N, E>
 where
-    N: Display + Eq + Hash + Ord + FromStr + Debug,
-    E: Clone + Copy + Num + PartialOrd,
+    N: Display + Debug,
+    E: FloydWarshallTrait + Display,
 {
     rate: E,
     path: Vec<(N, N)>,
@@ -18,8 +14,8 @@ where
 
 impl<N, E> BestRatePath<N, E>
 where
-    N: Display + Eq + Hash + Ord + FromStr + Debug,
-    E: Clone + Display + Copy + Num + PartialOrd,
+    N: Display + Debug,
+    E: FloydWarshallTrait + Display,
 {
     pub fn new(rate: E, path: Vec<(N, N)>) -> Self {
         Self { rate, path }

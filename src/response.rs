@@ -3,26 +3,22 @@
 pub mod best_rate_path;
 
 use self::best_rate_path::BestRatePath;
-use num_traits::Num;
-use std::clone::Clone;
-use std::cmp::PartialOrd;
+use crate::floyd_warshall::FloydWarshallTrait;
 use std::fmt::{Debug, Display};
-use std::hash::Hash;
-use std::str::FromStr;
 
 /// Exchange Rate Path Response structure.
 pub struct Response<N, E>
 where
-    N: Display + Eq + FromStr + Hash + Ord + Debug,
-    E: Clone + Display + Copy + Num + PartialOrd,
+    N: Display + Debug,
+    E: FloydWarshallTrait + Display,
 {
     best_rate_paths: Vec<BestRatePath<N, E>>,
 }
 
 impl<N, E> Response<N, E>
 where
-    N: Display + Eq + FromStr + Hash + Ord + Debug,
-    E: Clone + Display + Copy + Num + PartialOrd,
+    N: Display + Debug,
+    E: FloydWarshallTrait + Display,
 {
     pub fn new() -> Self {
         Self {
