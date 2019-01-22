@@ -52,8 +52,10 @@ A generic solution for Floyd-Warshall algorithm supporting substitution.
 
 **Input:**
 Reading and parsing input from stdin to `Request` instance holding instances of `PriceUpdate` and `ExchangeRateRequest` structs.
+
 **Processing:**
 Constructing a graph, running a customized version of Floyd-Warshall algorithm and forming a Response.
+
 **Output:**
 Writing the Response holding instances of `BestRatePath` struct to stdout.
 
