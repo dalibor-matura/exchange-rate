@@ -10,7 +10,6 @@ use std::clone::Clone;
 use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::fmt;
-use std::hash::Hash;
 use std::str::FromStr;
 
 #[derive(Eq, PartialEq, Hash)]
@@ -42,13 +41,13 @@ impl fmt::Display for Items {
     }
 }
 
-pub struct PriceUpdate<N, E>
-where
-    N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: fmt::Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr,
-    <E as FromStr>::Err: fmt::Debug,
-{
+/// Exchange Rate Path `PriceUpdate` structure.
+///
+/// # `PriceUpdate<N, E>` is parameterized over:
+///
+/// - Identifier data `N`.
+/// - Edge weight `E`.
+pub struct PriceUpdate<N, E> {
     timestamp: DateTime<FixedOffset>,
     exchange: N,
     source_currency: N,
@@ -59,7 +58,7 @@ where
 
 impl<N, E> PriceUpdate<N, E>
 where
-    N: Clone + Ord + FromStr + Eq + Hash,
+    N: Clone + FromStr,
     <N as FromStr>::Err: fmt::Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: fmt::Debug,

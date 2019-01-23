@@ -3,7 +3,6 @@
 use self::Items::*;
 use std::collections::HashMap;
 use std::fmt;
-use std::hash::Hash;
 use std::str::FromStr;
 
 #[derive(Eq, PartialEq, Hash)]
@@ -33,11 +32,12 @@ impl fmt::Display for Items {
     }
 }
 
-pub struct ExchangeRateRequest<N>
-where
-    N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: fmt::Debug,
-{
+/// `ExchangeRateRequest` structure.
+///
+/// # `ExchangeRateRequest<N>` is parameterized over:
+///
+/// - Identifier data `N`.
+pub struct ExchangeRateRequest<N> {
     source_exchange: N,
     source_currency: N,
     destination_exchange: N,
@@ -46,7 +46,7 @@ where
 
 impl<N> ExchangeRateRequest<N>
 where
-    N: Clone + Ord + FromStr + Eq + Hash,
+    N: Clone + FromStr,
     <N as FromStr>::Err: fmt::Debug,
 {
     // The type of a line that can be parsed into the `ExchangeRateRequest` structure.

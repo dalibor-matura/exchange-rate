@@ -2,37 +2,29 @@
 
 use crate::floyd_warshall::result::FloydWarshallResult;
 use crate::floyd_warshall::FloydWarshall;
-use crate::graph::Graph;
+use crate::graph::{Graph, NodeTrait};
 use crate::request::Request;
 use crate::response::best_rate_path::BestRatePath;
 use crate::response::Response;
+use crate::IndexMapTrait;
 use indexmap::map::{Entry, IndexMap};
 use indexmap::IndexSet;
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::Ordering::{Greater, Less};
-use std::cmp::{Eq, Ord, PartialOrd};
+use std::cmp::PartialOrd;
 use std::fmt::{Debug, Display};
-use std::hash::Hash;
 use std::ops::AddAssign;
 use std::str::FromStr;
 
-/// Exchange Rate Path (ERP) Algorithm structure.
+/// Exchange Rate Path `Algorithm` structure.
 ///
-/// # `Algorithm` is parameterized over:
+/// # `Algorithm<N, E, I>` is parameterized over:
 ///
 /// - Index `I` for indexing of nodes `N`.
 /// - Node data `N`.
 /// - Edge weight `E`.
-pub struct Algorithm<N, E, I>
-where
-    N: Clone + Display + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: Debug,
-    E: Clone + Display + Copy + Num + PartialOrd + FromStr,
-    <E as FromStr>::Err: Debug,
-    I: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash,
-    <I as FromStr>::Err: Debug,
-{
+pub struct Algorithm<N, E, I> {
     graph: Graph<(I, I), E>,
     node_to_index: IndexMap<N, I>,
     index_to_node: IndexMap<I, N>,
@@ -42,12 +34,11 @@ where
 
 impl<N, E, I> Algorithm<N, E, I>
 where
-    N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
+    N: Clone + Display + FromStr + IndexMapTrait + Debug,
     <N as FromStr>::Err: Debug,
-    E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
+    E: Display + Copy + Num + PartialOrd + FromStr + Debug,
     <E as FromStr>::Err: Debug,
-    I: Clone + Copy + Num + Ord + FromStr + AddAssign + Eq + Hash + Debug,
-    <I as FromStr>::Err: Debug,
+    I: NodeTrait + Num + FromStr + AddAssign,
 {
     fn new() -> Self {
         let graph = Graph::<(I, I), E>::new();

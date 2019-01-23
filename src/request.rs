@@ -2,33 +2,32 @@
 
 use self::exchange_rate_request::ExchangeRateRequest;
 use self::price_update::PriceUpdate;
+use crate::IndexMapTrait;
 use indexmap::map::{Entry, IndexMap};
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::PartialOrd;
 use std::fmt::Debug;
-use std::hash::Hash;
 use std::io::BufRead;
 use std::str::FromStr;
 
 mod exchange_rate_request;
 mod price_update;
 
-/// Exchange Rate Path Request structure.
-pub struct Request<N, E>
-where
-    N: Clone + Ord + FromStr + Eq + Hash,
-    <N as FromStr>::Err: Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr,
-    <E as FromStr>::Err: Debug,
-{
+/// Exchange Rate Path `Request` structure.
+///
+/// # `Request<N, E>` is parameterized over:
+///
+/// - Identifier data `N`.
+/// - Edge weight `E`.
+pub struct Request<N, E> {
     price_updates: IndexMap<(N, N, N), PriceUpdate<N, E>>,
     rate_requests: IndexMap<(N, N, N, N), ExchangeRateRequest<N>>,
 }
 
 impl<N, E> Request<N, E>
 where
-    N: Clone + Ord + FromStr + Eq + Hash,
+    N: Clone + FromStr + IndexMapTrait,
     <N as FromStr>::Err: Debug,
     E: Clone + Copy + Num + PartialOrd + FromStr,
     <E as FromStr>::Err: Debug,

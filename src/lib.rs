@@ -19,6 +19,12 @@ use std::hash::Hash;
 use std::io::BufRead;
 use std::str::FromStr;
 
+/// A trait group for `IndexMap`'s structure.
+pub trait IndexMapTrait: Eq + Hash {}
+
+/// Implement the `IndexMap` for all types satisfying bounds.
+impl<N> IndexMapTrait for N where N: Eq + Hash {}
+
 pub struct ExchangeRatePath<I: BufRead> {
     input: I,
 }
@@ -31,7 +37,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     pub fn run<N, E>(&mut self)
     where
-        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + IndexMapTrait + Debug,
         <N as FromStr>::Err: Debug,
         E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,
@@ -43,7 +49,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     fn form_request<N, E>(&mut self) -> Request<N, E>
     where
-        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + IndexMapTrait + Debug,
         <N as FromStr>::Err: Debug,
         E: Clone + Display + Copy + Num + PartialOrd + FromStr,
         <E as FromStr>::Err: Debug,
@@ -53,7 +59,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     fn process_request<N, E>(request: Request<N, E>) -> Response<N, E>
     where
-        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + IndexMapTrait + Debug,
         <N as FromStr>::Err: Debug,
         E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,
@@ -63,7 +69,7 @@ impl<I: BufRead> ExchangeRatePath<I> {
 
     fn write_response<N, E>(response: Response<N, E>)
     where
-        N: Clone + Display + Ord + FromStr + Eq + Hash + Debug,
+        N: Clone + Display + Ord + FromStr + IndexMapTrait + Debug,
         <N as FromStr>::Err: Debug,
         E: Clone + Display + Copy + Num + PartialOrd + FromStr + Debug,
         <E as FromStr>::Err: Debug,

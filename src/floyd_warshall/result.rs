@@ -10,11 +10,7 @@ use crate::graph::NodeTrait;
 ///
 /// - Node index / label `N`.
 /// - Number type `E` giving a weight to edges.
-pub struct FloydWarshallResult<N, E>
-where
-    N: NodeTrait,
-    E: FloydWarshallTrait,
-{
+pub struct FloydWarshallResult<N, E> {
     pub path: Graph<N, E>,
     pub next: Graph<N, N>,
 }

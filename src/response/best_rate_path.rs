@@ -3,11 +3,7 @@
 use crate::floyd_warshall::FloydWarshallTrait;
 use std::fmt::{Debug, Display};
 
-pub struct BestRatePath<N, E>
-where
-    N: Display + Debug,
-    E: FloydWarshallTrait + Display,
-{
+pub struct BestRatePath<N, E> {
     rate: E,
     path: Vec<(N, N)>,
 }

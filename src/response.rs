@@ -6,12 +6,13 @@ use self::best_rate_path::BestRatePath;
 use crate::floyd_warshall::FloydWarshallTrait;
 use std::fmt::{Debug, Display};
 
-/// Exchange Rate Path Response structure.
-pub struct Response<N, E>
-where
-    N: Display + Debug,
-    E: FloydWarshallTrait + Display,
-{
+/// Exchange Rate Path `Response` structure.
+///
+/// # `Response<N, E>` is parameterized over:
+///
+/// - Identifier data `N`.
+/// - Edge weight `E`.
+pub struct Response<N, E> {
     best_rate_paths: Vec<BestRatePath<N, E>>,
 }
 

@@ -67,10 +67,7 @@ where
     }
 }
 
-pub struct AllEdges<'a, N, E: 'a, Ty>
-where
-    N: 'a + NodeTrait,
-{
+pub struct AllEdges<'a, N, E: 'a, Ty> {
     inner: IndexMapIter<'a, (N, N), E>,
     ty: PhantomData<Ty>,
 }
