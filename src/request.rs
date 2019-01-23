@@ -4,9 +4,7 @@ use self::exchange_rate_request::ExchangeRateRequest;
 use self::price_update::PriceUpdate;
 use crate::IndexMapTrait;
 use indexmap::map::{Entry, IndexMap};
-use num_traits::Num;
 use std::clone::Clone;
-use std::cmp::PartialOrd;
 use std::fmt::Debug;
 use std::io::BufRead;
 use std::str::FromStr;
@@ -29,7 +27,7 @@ impl<N, E> Request<N, E>
 where
     N: Clone + FromStr + IndexMapTrait,
     <N as FromStr>::Err: Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr,
+    E: FromStr,
     <E as FromStr>::Err: Debug,
 {
     /// Create a new instance of empty `Request` structure.

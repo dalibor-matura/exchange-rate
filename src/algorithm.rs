@@ -1,7 +1,7 @@
 //! Exchange Rate Path (ERP) algorithm.
 
 use crate::floyd_warshall::result::FloydWarshallResult;
-use crate::floyd_warshall::FloydWarshall;
+use crate::floyd_warshall::{FloydWarshall, FloydWarshallTrait};
 use crate::graph::{Graph, NodeTrait};
 use crate::request::Request;
 use crate::response::best_rate_path::BestRatePath;
@@ -12,7 +12,6 @@ use indexmap::IndexSet;
 use num_traits::Num;
 use std::clone::Clone;
 use std::cmp::Ordering::{Greater, Less};
-use std::cmp::PartialOrd;
 use std::fmt::{Debug, Display};
 use std::ops::AddAssign;
 use std::str::FromStr;
@@ -21,9 +20,9 @@ use std::str::FromStr;
 ///
 /// # `Algorithm<N, E, I>` is parameterized over:
 ///
-/// - Index `I` for indexing of nodes `N`.
-/// - Node data `N`.
+/// - Identifier data `N`.
 /// - Edge weight `E`.
+/// - Index `I` for indexing of nodes `N`.
 pub struct Algorithm<N, E, I> {
     graph: Graph<(I, I), E>,
     node_to_index: IndexMap<N, I>,
@@ -36,9 +35,9 @@ impl<N, E, I> Algorithm<N, E, I>
 where
     N: Clone + Display + FromStr + IndexMapTrait + Debug,
     <N as FromStr>::Err: Debug,
-    E: Display + Copy + Num + PartialOrd + FromStr + Debug,
+    E: Display + FloydWarshallTrait + FromStr + Debug,
     <E as FromStr>::Err: Debug,
-    I: NodeTrait + Num + FromStr + AddAssign,
+    I: NodeTrait + Num + AddAssign,
 {
     fn new() -> Self {
         let graph = Graph::<(I, I), E>::new();

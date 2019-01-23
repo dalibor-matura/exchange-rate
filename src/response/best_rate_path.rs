@@ -1,6 +1,5 @@
 //! Best Rate Path.
 
-use crate::floyd_warshall::FloydWarshallTrait;
 use std::fmt::{Debug, Display};
 
 pub struct BestRatePath<N, E> {
@@ -8,10 +7,16 @@ pub struct BestRatePath<N, E> {
     path: Vec<(N, N)>,
 }
 
+/// Exchange `BestRatePath` structure.
+///
+/// # `BestRatePath<N, E>` is parameterized over:
+///
+/// - Identifier data `N`.
+/// - Edge weight `E`.
 impl<N, E> BestRatePath<N, E>
 where
     N: Display + Debug,
-    E: FloydWarshallTrait + Display,
+    E: Display,
 {
     pub fn new(rate: E, path: Vec<(N, N)>) -> Self {
         Self { rate, path }

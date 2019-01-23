@@ -3,7 +3,6 @@
 pub mod best_rate_path;
 
 use self::best_rate_path::BestRatePath;
-use crate::floyd_warshall::FloydWarshallTrait;
 use std::fmt::{Debug, Display};
 
 /// Exchange Rate Path `Response` structure.
@@ -19,7 +18,7 @@ pub struct Response<N, E> {
 impl<N, E> Response<N, E>
 where
     N: Display + Debug,
-    E: FloydWarshallTrait + Display,
+    E: Display,
 {
     pub fn new() -> Self {
         Self {

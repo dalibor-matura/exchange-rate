@@ -5,9 +5,7 @@ extern crate chrono;
 // use crate::graph::Graph;
 use self::Items::*;
 use chrono::{DateTime, FixedOffset};
-use num_traits::Num;
 use std::clone::Clone;
-use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
@@ -60,7 +58,7 @@ impl<N, E> PriceUpdate<N, E>
 where
     N: Clone + FromStr,
     <N as FromStr>::Err: fmt::Debug,
-    E: Clone + Copy + Num + PartialOrd + FromStr,
+    E: FromStr,
     <E as FromStr>::Err: fmt::Debug,
 {
     /// Create a new instance of `PriceUpdate` structure.

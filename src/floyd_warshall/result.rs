@@ -1,6 +1,5 @@
 //! Floyd-Warshall result.
 
-use super::FloydWarshallTrait;
 use crate::graph::Graph;
 use crate::graph::NodeTrait;
 
@@ -18,7 +17,6 @@ pub struct FloydWarshallResult<N, E> {
 impl<N, E> FloydWarshallResult<N, E>
 where
     N: NodeTrait,
-    E: FloydWarshallTrait,
 {
     /// Create a new instance of FloydWarshallResult structure.
     pub(super) fn new(path: Graph<N, E>, next: Graph<N, N>) -> Self {
