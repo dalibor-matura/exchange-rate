@@ -1,4 +1,6 @@
-# The Exchange Rate Path Problem
+# Exchange Rate
+
+The best Exchange Rate path calculation for a given set of Exchanges, Currencies, Exchange Rates and Exchange Rate Requests. 
 
 |Crate|Documentation|Travis CI|CodeCov|
 |:---:|:-----------:|:-------:|:-----:|
