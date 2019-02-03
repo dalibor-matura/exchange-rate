@@ -54,7 +54,7 @@ where
         request
     }
 
-    fn process_line(&mut self, line: &String) {
+    fn process_line(&mut self, line: &str) {
         let mut iter = line.split_whitespace();
 
         // Process the first line item if it exists.

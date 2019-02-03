@@ -13,5 +13,7 @@ keywords = ["exchange", "rate", "path", "currency"]
 
 [dependencies]
 chrono = "0.4"
+floyd-warshall-alg = "0.1.2"
 indexmap = "1.0.2"
 num-traits = "0.2"
+safe-graph = "0.1.4"

@@ -102,7 +102,7 @@ where
     /// ## Example
     ///
     /// EXCHANGE_RATE_REQUEST KRAKEN BTC GDAX ETH
-    pub fn parse_line(line: &String) -> Result<ExchangeRateRequest<N>, Vec<String>> {
+    pub fn parse_line(line: &str) -> Result<ExchangeRateRequest<N>, Vec<String>> {
         let mut iter = line.split_whitespace();
         let mut values = HashMap::new();
         let mut errors: Vec<String> = Vec::new();

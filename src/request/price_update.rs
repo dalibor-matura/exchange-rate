@@ -123,7 +123,7 @@ where
     /// ## Example
     ///
     /// 2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009
-    pub fn parse_line(line: &String) -> Result<PriceUpdate<N, E>, Vec<String>> {
+    pub fn parse_line(line: &str) -> Result<PriceUpdate<N, E>, Vec<String>> {
         let mut iter = line.split_whitespace();
         let mut values = HashMap::new();
         let mut errors: Vec<String> = Vec::new();

@@ -1,7 +1,7 @@
 use crate::algorithm::Algorithm;
-use crate::floyd_warshall::FloydWarshallTrait;
 use crate::request::Request;
 use crate::response::Response;
+use floyd_warshall_alg::FloydWarshallTrait;
 use std::clone::Clone;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;

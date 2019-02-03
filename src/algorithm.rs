@@ -1,15 +1,13 @@
 //! Exchange Rate Path (ERP) algorithm.
-
-use crate::floyd_warshall::result::FloydWarshallResult;
-use crate::floyd_warshall::{FloydWarshall, FloydWarshallTrait};
-use crate::graph::{Graph, NodeTrait};
 use crate::request::Request;
 use crate::response::best_rate_path::BestRatePath;
 use crate::response::Response;
 use crate::IndexMapTrait;
+use floyd_warshall_alg::{FloydWarshall, FloydWarshallResult, FloydWarshallTrait};
 use indexmap::map::{Entry, IndexMap};
 use indexmap::IndexSet;
 use num_traits::Num;
+use safe_graph::{Graph, NodeTrait};
 use std::clone::Clone;
 use std::cmp::Ordering::{Greater, Less};
 use std::fmt::{Debug, Display};
@@ -167,9 +165,7 @@ where
         let sharp_greater = Box::new(|x: E, y: E| x.partial_cmp(&y).unwrap_or(Less) == Greater);
 
         let alg: FloydWarshall<E> = FloydWarshall::new_customized(mul, sharp_greater);
-        let result = alg.find_paths(&self.graph);
-
-        result
+        alg.find_paths(&self.graph)
     }
 
     fn form_response(
@@ -210,6 +206,7 @@ where
                 })
                 .collect();
 
+            #[allow(clippy::single_match)]
             match rate_raw {
                 Some(&rate) => {
                     let best_rate_path = BestRatePath::<N, E>::new(rate, path);
