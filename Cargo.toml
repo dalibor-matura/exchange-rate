@@ -5,7 +5,9 @@ authors = ["Dalibor Matura <dalibor.matura@gmail.com>"]
 edition = "2018"
 description = "The best Exchange Rate calculation for a given set of Exchanges, Currencies, Exchange Rates and Exchange Rate Requests."
 homepage = "https://github.com/dalibor-matura/exchange-rate-path"
+license = "GPL-3.0"
 readme = "README.md"
+documentation = "https://docs.rs/exchange-rate-path"
 repository = "https://github.com/dalibor-matura/exchange-rate-path"
 keywords = ["exchange", "rate", "path", "currency"]
 
