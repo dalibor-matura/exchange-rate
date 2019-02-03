@@ -1,7 +1,5 @@
 //! Price Update.
 
-extern crate chrono;
-
 // use crate::graph::Graph;
 use self::Items::*;
 use chrono::{DateTime, FixedOffset};

@@ -4,12 +4,16 @@ version = "0.1.0"
 authors = ["Dalibor Matura <dalibor.matura@gmail.com>"]
 edition = "2018"
 description = "The best Exchange Rate calculation for a given set of Exchanges, Currencies, Exchange Rates and Exchange Rate Requests."
-homepage = "https://github.com/dalibor-matura/exchange-rate-path"
+homepage = "https://github.com/dalibor-matura/exchange-rate"
 license = "GPL-3.0"
 readme = "README.md"
-documentation = "https://docs.rs/exchange-rate-path"
-repository = "https://github.com/dalibor-matura/exchange-rate-path"
+documentation = "https://docs.rs/exchange-rate"
+repository = "https://github.com/dalibor-matura/exchange-rate"
 keywords = ["exchange", "rate", "path", "currency"]
+
+[badges]
+travis-ci = { repository = "dalibor-matura/exchange-rate", branch = "master" }
+codecov = { repository = "dalibor-matura/exchange-rate", branch = "master", service = "github" }
 
 [dependencies]
 chrono = "0.4"
