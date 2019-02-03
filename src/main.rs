@@ -1,4 +1,4 @@
-use exchange_rate_path::ExchangeRatePath;
+use exchange_rate::ExchangeRatePath;
 use std::io;
 
 fn main() {

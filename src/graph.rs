@@ -136,7 +136,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use exchange_rate_path::graph::Graph;
+    /// use exchange_rate::graph::Graph;
     ///
     /// // Create a new directed Graph.
     /// // Use a type hint to have `()` be the edge weight type.
@@ -195,7 +195,7 @@ where
     ///
     /// ```
     /// // Create a Graph with directed edges, and add one edge to it
-    /// use exchange_rate_path::graph::Graph;
+    /// use exchange_rate::graph::Graph;
     ///
     /// let mut g: Graph<_, _> = Graph::new();
     /// g.add_edge("x", "y", -1);

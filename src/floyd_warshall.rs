@@ -54,7 +54,7 @@ impl<F: FloydWarshallTrait> FloydWarshall<F> {
     /// # Examples
     ///
     /// ```
-    /// use exchange_rate_path::floyd_warshall::FloydWarshall;
+    /// use exchange_rate::floyd_warshall::FloydWarshall;
     ///
     /// let alg: FloydWarshall<f32> = FloydWarshall::new();
     /// ```
@@ -79,7 +79,7 @@ impl<F: FloydWarshallTrait> FloydWarshall<F> {
     /// # Examples
     ///
     /// ```
-    /// use exchange_rate_path::floyd_warshall::FloydWarshall;
+    /// use exchange_rate::floyd_warshall::FloydWarshall;
     /// use std::cmp::Ordering::{Greater, Less};
     ///
     /// let mul = Box::new(|x: f32, y: f32| x * y);
@@ -102,7 +102,7 @@ impl<F: FloydWarshallTrait> FloydWarshall<F> {
     /// # Examples
     ///
     /// ```
-    /// use exchange_rate_path::floyd_warshall::FloydWarshall;
+    /// use exchange_rate::floyd_warshall::FloydWarshall;
     /// use std::cmp::Ordering::{Greater, Less};
     ///
     /// let mul = Box::new(|x: f32, y: f32| x * y);
