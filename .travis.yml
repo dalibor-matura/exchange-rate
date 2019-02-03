@@ -20,14 +20,14 @@ addons:
       - libssl-dev
 before_cache:
   - cargo prune
-  - |
-    if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
-    fi
 before_script:
   - |
     (which cargo-install-update && cargo install-update cargo-update) || cargo install cargo-update &&
     (which cargo-prune && cargo install-update cargo-prune) || cargo install cargo-prune
+  - |
+    if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
+    fi
 script:
   - cargo clean
   - cargo build
