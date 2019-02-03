@@ -31,7 +31,7 @@ where
     }
 
     #[allow(dead_code)]
-    pub fn get_best_rate_path(&self) -> &Vec<BestRatePath<N, E>> {
+    pub fn get_best_rate_paths(&self) -> &Vec<BestRatePath<N, E>> {
         &self.best_rate_paths
     }
 

@@ -507,12 +507,12 @@ EXCHANGE_RATE_REQUEST CoinBene ETH BiBox USD"
         let response = Algorithm::<String, f32, u32>::process(&request);
 
         // Test that all Exchange Rate Responses are present.
-        assert_eq!(response.get_best_rate_path().len(), 3);
+        assert_eq!(response.get_best_rate_paths().len(), 3);
 
         // Test first Exchange Rate Responses.
-        assert_eq!(response.get_best_rate_path()[0].get_rate(), &1.0);
+        assert_eq!(response.get_best_rate_paths()[0].get_rate(), &1.0);
         assert_eq!(
-            response.get_best_rate_path()[0].get_path(),
+            response.get_best_rate_paths()[0].get_path(),
             &vec![
                 ("BITMEX".to_string(), "BTC".to_string()),
                 ("EXX".to_string(), "BTC".to_string())
@@ -520,9 +520,9 @@ EXCHANGE_RATE_REQUEST CoinBene ETH BiBox USD"
         );
 
         // Test first Exchange Rate Responses.
-        assert_eq!(response.get_best_rate_path()[1].get_rate(), &27.243645);
+        assert_eq!(response.get_best_rate_paths()[1].get_rate(), &27.243645);
         assert_eq!(
-            response.get_best_rate_path()[1].get_path(),
+            response.get_best_rate_paths()[1].get_path(),
             &vec![
                 ("BITMEX".to_string(), "BTC".to_string()),
                 ("COINBENE".to_string(), "BTC".to_string()),
