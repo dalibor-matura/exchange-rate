@@ -14,6 +14,26 @@ In order to provide customers a product that lets them spend cryptocurrencies to
 
 The idea is based on the challenge I received once as a part of an interview.
 
+## Build and Run the code
+
+As a standard Rust project, building it and running it is what you would expect.
+
+### Build
+
+`cargo build`
+or
+`cargo build --release`
+
+### Run
+
+`cargo run < data/exchange-rate-path-input.txt`
+or
+`cargo run --release < data/exchange-rate-path-input.txt`
+
+### Input format
+
+Example of the expected input format can be found in [exchange-rate-input.txt]()
+
 ## Design
 
 The implementation consist from three main parts and a gel connecting them together.
