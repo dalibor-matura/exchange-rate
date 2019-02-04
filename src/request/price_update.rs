@@ -119,7 +119,7 @@ where
     ///
     /// ## Example
     ///
-    /// 2017-11-01T09:42:23+00:00 KRAKEN BTC USD 1000.0 0.0009
+    /// 2019-08-01T08:42:22+00:00 BITFINEX BTC USD 1000.0 0.0009
     pub fn parse_line(line: &str) -> Result<PriceUpdate<N, E>, Vec<String>> {
         let mut iter = line.split_whitespace();
         let mut values = HashMap::new();
