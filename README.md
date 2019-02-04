@@ -30,9 +30,19 @@ or
 or
 `cargo run --release < data/exchange-rate-path-input.txt`
 
-### Input format
+## Input format
 
-Example of the expected input format can be found in [exchange-rate-input.txt]()
+Input is formed by two types of lines: "Price Update" and "Exchange Rate Request". Example of the expected input format can be found in [data/exchange-rate-input.txt](https://github.com/dalibor-matura/exchange-rate/blob/master/data/exchange-rate-input.txt).
+
+#### Price Update
+
+* Format: `<timestamp> <exchange> <source_currency> <destination_currency> <forward_factor> <backward_factor>`
+* Example: `2019-08-01T08:42:22+00:00 BITFINEX BTC USD 1000.0 0.0009`
+
+#### Exchange Rate Request
+
+* Format: `EXCHANGE_RATE_REQUEST <source_exchange> <source_currency> <destination_exchange> <destination_currency>`
+* Example: `EXCHANGE_RATE_REQUEST BITFINEX ETH BINANCE BTC`
 
 ## Design
 
